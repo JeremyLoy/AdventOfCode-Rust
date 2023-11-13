@@ -1,4 +1,6 @@
+use itertools::Itertools;
 use std::collections::HashMap;
+use std::convert::identity;
 
 /// Counts the number of increasing pairs in windowed sums of given data.
 ///
@@ -180,6 +182,87 @@ pub enum BitCriteria {
     Oxygen,
     CO2,
 }
+
+#[derive(Debug)]
+pub struct BingoBoard {
+    board: [[BingoCell; 5]; 5],
+}
+
+#[derive(Debug, Copy, Clone)]
+pub enum BingoCell {
+    Marked(i32),
+    Unmarked(i32),
+}
+impl BingoBoard {
+    // Extracting cell parsing logic to a separate function
+    fn parse_cell(number_str: &str) -> Option<BingoCell> {
+        let number = number_str.parse::<i32>().ok()?;
+        Some(BingoCell::Unmarked(number))
+    }
+    pub fn parse(input: &[String]) -> Option<Self> {
+        let mut board = [[BingoCell::Unmarked(0); 5]; 5];
+        for (i, line) in input.iter().enumerate() {
+            for (j, number_str) in line.split_whitespace().enumerate() {
+                board[i][j] = Self::parse_cell(number_str)?;
+            }
+        }
+        Some(BingoBoard { board })
+    }
+
+    pub fn parse_batch<I: Iterator<Item = String>>(lines: I) -> Vec<Self> {
+        lines
+            .map(|line| line.trim().to_string())
+            .filter(|line| !line.is_empty())
+            .chunks(5)
+            .into_iter()
+            .map(|chunk| BingoBoard::parse(chunk.collect_vec().as_mut_slice()))
+            .filter_map(identity)
+            .collect()
+    }
+
+    pub fn calculate_score(&self, last_call: i32) -> i32 {
+        let mut score = 0;
+        for row in self.board.iter() {
+            for cell in row.iter() {
+                if let BingoCell::Unmarked(value) = cell {
+                    score += value;
+                }
+            }
+        }
+        score * last_call
+    }
+
+    pub fn mark(&mut self, number: i32) {
+        for row in self.board.iter_mut() {
+            for cell in row.iter_mut() {
+                if let BingoCell::Unmarked(value) = cell {
+                    if *value == number {
+                        *cell = BingoCell::Marked(number);
+                    }
+                }
+            }
+        }
+    }
+
+    pub fn is_winner(&self) -> bool {
+        for row in self.board.iter() {
+            if row.iter().all(|&cell| matches!(cell, BingoCell::Marked(_))) {
+                return true;
+            }
+        }
+        for col in 0..5 {
+            if self
+                .board
+                .iter()
+                .all(|row| matches!(row[col], BingoCell::Marked(_)))
+            {
+                return true;
+            }
+        }
+        false
+    }
+}
+
 pub fn find_component_rating(mut binary_report: Vec<String>, bit_criteria: BitCriteria) -> String {
     let mut freq0 = 0;
     let mut freq1 = 0;
@@ -237,6 +320,7 @@ pub fn binary_str_to_decimal(binary: &str) -> i32 {
 #[cfg(test)]
 mod test {
     use super::*;
+    use std::collections::HashSet;
     use std::fs::File;
     use std::io::{BufRead, BufReader};
     use std::path::Path;
@@ -460,5 +544,157 @@ mod test {
             * binary_str_to_decimal(&co2_scrubber_rating);
 
         assert_eq!(life_support_rating, 4_550_283)
+    }
+
+    #[test]
+    fn test_4_1_sample() {
+        let mut input = "
+        7,4,9,5,11,17,23,2,0,14,21,24,10,16,13,6,15,25,12,22,18,20,8,19,3,26,1
+
+        22 13 17 11  0
+         8  2 23  4 24
+        21  9 14 16  7
+         6 10  3 18  5
+         1 12 20 15 19
+        
+         3 15  0  2 22
+         9 18 13 17  5
+        19  8  7 25 23
+        20 11 10 24  4
+        14 21 16 12  6
+        
+        14 21 17 24  4
+        10 16 15  9 19
+        18  8 23 26 20
+        22 11 13  6  5
+         2  0 12  3  7
+        "
+        .lines()
+        .map(|line| line.trim().to_string())
+        .filter(|line| !line.is_empty());
+
+        let calls: Vec<i32> = input
+            .next()
+            .unwrap()
+            .split(',')
+            .filter_map(|s| s.parse::<i32>().ok())
+            .collect();
+        let mut boards = BingoBoard::parse_batch(input);
+        for call in calls {
+            for board in boards.iter_mut() {
+                board.mark(call);
+                if board.is_winner() {
+                    assert_eq!(board.calculate_score(call), 4_512);
+                    return;
+                }
+            }
+        }
+        panic!("no winner was found");
+    }
+
+    #[test]
+    fn test_4_1() {
+        let mut input = read_lines("input/2021/4.txt")
+            .map(|line| line.trim().to_string())
+            .filter(|line| !line.is_empty());
+
+        let calls: Vec<i32> = input
+            .next()
+            .unwrap()
+            .split(',')
+            .filter_map(|s| s.parse::<i32>().ok())
+            .collect();
+        let mut boards = BingoBoard::parse_batch(input);
+        for call in calls {
+            for board in boards.iter_mut() {
+                board.mark(call);
+                if board.is_winner() {
+                    assert_eq!(board.calculate_score(call), 8_136);
+                    return;
+                }
+            }
+        }
+        panic!("no winner was found");
+    }
+
+    #[test]
+    fn test_4_2_sample() {
+        let mut input = "
+        7,4,9,5,11,17,23,2,0,14,21,24,10,16,13,6,15,25,12,22,18,20,8,19,3,26,1
+
+        22 13 17 11  0
+         8  2 23  4 24
+        21  9 14 16  7
+         6 10  3 18  5
+         1 12 20 15 19
+        
+         3 15  0  2 22
+         9 18 13 17  5
+        19  8  7 25 23
+        20 11 10 24  4
+        14 21 16 12  6
+        
+        14 21 17 24  4
+        10 16 15  9 19
+        18  8 23 26 20
+        22 11 13  6  5
+         2  0 12  3  7
+        "
+        .lines()
+        .map(|line| line.trim().to_string())
+        .filter(|line| !line.is_empty());
+
+        let calls: Vec<i32> = input
+            .next()
+            .unwrap()
+            .split(',')
+            .filter_map(|s| s.parse::<i32>().ok())
+            .collect();
+        let mut boards = BingoBoard::parse_batch(input);
+        let mut last_winning_score = 0;
+        let mut past_winners = HashSet::new();
+
+        for call in calls {
+            for i in 0..boards.len() {
+                let board = boards.get_mut(i).unwrap();
+                board.mark(call);
+                if board.is_winner() && !past_winners.contains(&i) {
+                    last_winning_score = board.calculate_score(call);
+                    past_winners.insert(i);
+                }
+            }
+        }
+
+        assert_eq!(last_winning_score, 1_924);
+    }
+
+    #[test]
+    fn test_4_2() {
+        let mut input = read_lines("input/2021/4.txt")
+            .map(|line| line.trim().to_string())
+            .filter(|line| !line.is_empty());
+
+        let calls: Vec<i32> = input
+            .next()
+            .unwrap()
+            .split(',')
+            .filter_map(|s| s.parse::<i32>().ok())
+            .collect();
+        let mut boards = BingoBoard::parse_batch(input);
+        let mut last_winning_score = 0;
+        let mut past_winners = HashSet::new();
+
+        for call in calls {
+            for i in 0..boards.len() {
+                let board = boards.get_mut(i).unwrap();
+                board.mark(call);
+                if board.is_winner() && !past_winners.contains(&i) {
+                    last_winning_score = board.calculate_score(call);
+                    past_winners.insert(i);
+                }
+            }
+        }
+
+        assert_eq!(last_winning_score, 12_738);
     }
 }
