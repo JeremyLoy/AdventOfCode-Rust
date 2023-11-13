@@ -320,18 +320,35 @@ pub fn binary_str_to_decimal(binary: &str) -> i32 {
 #[cfg(test)]
 mod test {
     use super::*;
+    use crate::_2021::test::Input::{Path, Raw};
     use std::collections::HashSet;
     use std::fs::File;
     use std::io::{BufRead, BufReader};
-    use std::path::Path;
 
-    fn read_lines<P>(filename: P) -> impl Iterator<Item = String>
-    where
-        P: AsRef<Path>,
-    {
-        let file = File::open(filename).unwrap();
-        let reader = BufReader::new(file);
-        reader.lines().filter_map(Result::ok)
+    enum Input<'a> {
+        Path(&'a str),
+        Raw(&'a str),
+    }
+
+    fn to_lines(input: Input) -> Box<dyn Iterator<Item = String> + '_> {
+        match input {
+            Path(path) => {
+                let file = File::open(path).expect("Failed to open file");
+                let reader = BufReader::new(file);
+                Box::new(
+                    reader
+                        .lines()
+                        .filter_map(Result::ok)
+                        .map(|s| s.trim().to_owned())
+                        .filter(|s| !s.is_empty()),
+                )
+            }
+            Raw(s) => Box::new(
+                s.lines()
+                    .map(|s| s.trim().to_owned())
+                    .filter(|s| !s.is_empty()),
+            ),
+        }
     }
 
     fn parse_lines_as_i32(lines: impl Iterator<Item = String>) -> impl Iterator<Item = i32> {
@@ -340,7 +357,7 @@ mod test {
 
     #[test]
     fn test_1_1_sample() {
-        let input = "
+        let input = to_lines(Raw("
         199
         200
         208
@@ -351,9 +368,7 @@ mod test {
         269
         260
         263
-        "
-        .lines()
-        .map(|line| line.to_string());
+        "));
         let numbers: Vec<i32> = parse_lines_as_i32(input).collect();
 
         let count = count_of_increasing_pairs_in_windowed_sums(&numbers, 1);
@@ -363,7 +378,7 @@ mod test {
 
     #[test]
     fn test_1_1() {
-        let lines = read_lines("input/2021/1.txt");
+        let lines = to_lines(Path("input/2021/1.txt"));
         let numbers: Vec<i32> = parse_lines_as_i32(lines).collect();
 
         let count = count_of_increasing_pairs_in_windowed_sums(&numbers, 1);
@@ -373,7 +388,7 @@ mod test {
 
     #[test]
     fn test_1_2_sample() {
-        let input = "
+        let input = to_lines(Raw("
         199
         200
         208
@@ -384,9 +399,7 @@ mod test {
         269
         260
         263
-        "
-        .lines()
-        .map(|line| line.to_string());
+        "));
         let numbers: Vec<i32> = parse_lines_as_i32(input).collect();
 
         let count = count_of_increasing_pairs_in_windowed_sums(&numbers, 3);
@@ -396,7 +409,7 @@ mod test {
 
     #[test]
     fn test_1_2() {
-        let lines = read_lines("input/2021/1.txt");
+        let lines = to_lines(Path("input/2021/1.txt"));
         let numbers: Vec<i32> = parse_lines_as_i32(lines).collect();
 
         let count = count_of_increasing_pairs_in_windowed_sums(&numbers, 3);
@@ -406,16 +419,14 @@ mod test {
 
     #[test]
     fn test_2_1_sample() {
-        let input = "
+        let input = to_lines(Raw("
         forward 5
         down 5
         forward 8
         up 3
         down 8
         forward 2
-        "
-        .lines()
-        .map(|line| line.to_string());
+        "));
         let commands = Command::parse_batch(input);
 
         let result = calculate_distance(commands);
@@ -425,7 +436,7 @@ mod test {
 
     #[test]
     fn test_2_1() {
-        let input = read_lines("input/2021/2.txt");
+        let input = to_lines(Path("input/2021/2.txt"));
         let commands = Command::parse_batch(input);
 
         let result = calculate_distance(commands);
@@ -435,16 +446,14 @@ mod test {
 
     #[test]
     fn test_2_2_sample() {
-        let input = "
+        let input = to_lines(Raw("
         forward 5
         down 5
         forward 8
         up 3
         down 8
         forward 2
-        "
-        .lines()
-        .map(|line| line.to_string());
+        "));
         let commands = Command::parse_batch(input);
 
         let result = calculate_aim_and_distance(commands);
@@ -454,7 +463,7 @@ mod test {
 
     #[test]
     fn test_2_2() {
-        let input = read_lines("input/2021/2.txt");
+        let input = to_lines(Path("input/2021/2.txt"));
         let commands = Command::parse_batch(input);
 
         let result = calculate_aim_and_distance(commands);
@@ -464,7 +473,7 @@ mod test {
 
     #[test]
     fn test_3_1_sample() {
-        let input: Vec<String> = "
+        let input: Vec<String> = to_lines(Raw("
         00100
         11110
         10110
@@ -477,10 +486,7 @@ mod test {
         11001
         00010
         01010
-        "
-        .lines()
-        .map(|line| line.trim().to_string())
-        .filter(|line| !line.is_empty())
+        "))
         .collect();
 
         let gamma_rate = find_all_most_common_bits(&input);
@@ -494,7 +500,7 @@ mod test {
 
     #[test]
     fn test_3_1() {
-        let input: Vec<String> = read_lines("input/2021/3.txt").collect();
+        let input: Vec<String> = to_lines(Path("input/2021/3.txt")).collect();
 
         let gamma_rate = find_all_most_common_bits(&input);
         let epsilon_rate = flip_binary_str_bits(&gamma_rate);
@@ -507,7 +513,7 @@ mod test {
 
     #[test]
     fn test_3_2_sample() {
-        let input: Vec<String> = "
+        let input: Vec<String> = to_lines(Raw("
         00100
         11110
         10110
@@ -520,10 +526,7 @@ mod test {
         11001
         00010
         01010
-        "
-        .lines()
-        .map(|line| line.trim().to_string())
-        .filter(|line| !line.is_empty())
+        "))
         .collect();
 
         let oxygen_generator_rating = find_component_rating(input.clone(), BitCriteria::Oxygen);
@@ -536,7 +539,7 @@ mod test {
 
     #[test]
     fn test_3_2() {
-        let input: Vec<String> = read_lines("input/2021/3.txt").collect();
+        let input: Vec<String> = to_lines(Path("input/2021/3.txt")).collect();
 
         let oxygen_generator_rating = find_component_rating(input.clone(), BitCriteria::Oxygen);
         let co2_scrubber_rating = find_component_rating(input, BitCriteria::CO2);
@@ -548,7 +551,7 @@ mod test {
 
     #[test]
     fn test_4_1_sample() {
-        let mut input = "
+        let mut input = to_lines(Raw("
         7,4,9,5,11,17,23,2,0,14,21,24,10,16,13,6,15,25,12,22,18,20,8,19,3,26,1
 
         22 13 17 11  0
@@ -568,10 +571,7 @@ mod test {
         18  8 23 26 20
         22 11 13  6  5
          2  0 12  3  7
-        "
-        .lines()
-        .map(|line| line.trim().to_string())
-        .filter(|line| !line.is_empty());
+        "));
 
         let calls: Vec<i32> = input
             .next()
@@ -594,9 +594,7 @@ mod test {
 
     #[test]
     fn test_4_1() {
-        let mut input = read_lines("input/2021/4.txt")
-            .map(|line| line.trim().to_string())
-            .filter(|line| !line.is_empty());
+        let mut input = to_lines(Path("input/2021/4.txt"));
 
         let calls: Vec<i32> = input
             .next()
@@ -619,7 +617,7 @@ mod test {
 
     #[test]
     fn test_4_2_sample() {
-        let mut input = "
+        let mut input = to_lines(Raw("
         7,4,9,5,11,17,23,2,0,14,21,24,10,16,13,6,15,25,12,22,18,20,8,19,3,26,1
 
         22 13 17 11  0
@@ -639,10 +637,7 @@ mod test {
         18  8 23 26 20
         22 11 13  6  5
          2  0 12  3  7
-        "
-        .lines()
-        .map(|line| line.trim().to_string())
-        .filter(|line| !line.is_empty());
+        "));
 
         let calls: Vec<i32> = input
             .next()
@@ -670,9 +665,7 @@ mod test {
 
     #[test]
     fn test_4_2() {
-        let mut input = read_lines("input/2021/4.txt")
-            .map(|line| line.trim().to_string())
-            .filter(|line| !line.is_empty());
+        let mut input = to_lines(Path("input/2021/4.txt"));
 
         let calls: Vec<i32> = input
             .next()
