@@ -1,7 +1,4 @@
 use std::collections::HashMap;
-use std::fs::File;
-use std::io::{BufRead, BufReader};
-use std::path::Path;
 
 /// Counts the number of increasing pairs in windowed sums of given data.
 ///
@@ -39,87 +36,6 @@ pub fn count_of_increasing_pairs_in_windowed_sums(data: &[i32], window_size: usi
         .count() as i32;
 
     count_increasing
-}
-
-#[allow(dead_code)]
-fn read_lines<P>(filename: P) -> impl Iterator<Item = String>
-where
-    P: AsRef<Path>,
-{
-    let file = File::open(filename).unwrap();
-    let reader = BufReader::new(file);
-    reader.lines().filter_map(Result::ok)
-}
-
-#[allow(dead_code)]
-fn parse_lines_as_i32(lines: impl Iterator<Item = String>) -> impl Iterator<Item = i32> {
-    lines.filter_map(|line| line.trim().parse::<i32>().ok())
-}
-
-#[test]
-fn test_1_1_sample() {
-    let input = "
-        199
-        200
-        208
-        210
-        200
-        207
-        240
-        269
-        260
-        263
-        "
-    .lines()
-    .map(|line| line.to_string());
-    let numbers: Vec<i32> = parse_lines_as_i32(input).collect();
-
-    let count = count_of_increasing_pairs_in_windowed_sums(&numbers, 1);
-
-    assert_eq!(count, 7);
-}
-
-#[test]
-fn test_1_1() {
-    let lines = read_lines("input/2021/1.txt");
-    let numbers: Vec<i32> = parse_lines_as_i32(lines).collect();
-
-    let count = count_of_increasing_pairs_in_windowed_sums(&numbers, 1);
-
-    assert_eq!(count, 1583);
-}
-
-#[test]
-fn test_1_2_sample() {
-    let input = "
-        199
-        200
-        208
-        210
-        200
-        207
-        240
-        269
-        260
-        263
-        "
-    .lines()
-    .map(|line| line.to_string());
-    let numbers: Vec<i32> = parse_lines_as_i32(input).collect();
-
-    let count = count_of_increasing_pairs_in_windowed_sums(&numbers, 3);
-
-    assert_eq!(count, 5);
-}
-
-#[test]
-fn test_1_2() {
-    let lines = read_lines("input/2021/1.txt");
-    let numbers: Vec<i32> = parse_lines_as_i32(lines).collect();
-
-    let count = count_of_increasing_pairs_in_windowed_sums(&numbers, 3);
-
-    assert_eq!(count, 1627);
 }
 
 #[derive(Debug)]
@@ -227,64 +143,6 @@ pub fn calculate_aim_and_distance(commands: Vec<Command>) -> i32 {
     horizontal_position * vertical_depth
 }
 
-#[test]
-fn test_2_1_sample() {
-    let input = "
-        forward 5
-        down 5
-        forward 8
-        up 3
-        down 8
-        forward 2
-        "
-    .lines()
-    .map(|line| line.to_string());
-    let commands = Command::parse_batch(input);
-
-    let result = calculate_distance(commands);
-
-    assert_eq!(result, 150);
-}
-
-#[test]
-fn test_2_1() {
-    let input = read_lines("input/2021/2.txt");
-    let commands = Command::parse_batch(input);
-
-    let result = calculate_distance(commands);
-
-    assert_eq!(result, 2_150_351);
-}
-
-#[test]
-fn test_2_2_sample() {
-    let input = "
-        forward 5
-        down 5
-        forward 8
-        up 3
-        down 8
-        forward 2
-        "
-    .lines()
-    .map(|line| line.to_string());
-    let commands = Command::parse_batch(input);
-
-    let result = calculate_aim_and_distance(commands);
-
-    assert_eq!(result, 900);
-}
-
-#[test]
-fn test_2_2() {
-    let input = read_lines("input/2021/2.txt");
-    let commands = Command::parse_batch(input);
-
-    let result = calculate_aim_and_distance(commands);
-
-    assert_eq!(result, 1_842_742_223);
-}
-
 pub fn find_all_most_common_bits(binary_report: &Vec<String>) -> String {
     let mut freq_of_ones = HashMap::new();
 
@@ -317,6 +175,7 @@ pub fn find_all_most_common_bits(binary_report: &Vec<String>) -> String {
     ret
 }
 
+#[derive(Debug)]
 pub enum BitCriteria {
     Oxygen,
     CO2,
@@ -374,9 +233,154 @@ pub fn flip_binary_str_bits(binary: &str) -> String {
 pub fn binary_str_to_decimal(binary: &str) -> i32 {
     i32::from_str_radix(binary, 2).expect("Failed to convert binary string to decimal")
 }
-#[test]
-fn test_3_1_sample() {
-    let input: Vec<String> = "
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use std::fs::File;
+    use std::io::{BufRead, BufReader};
+    use std::path::Path;
+
+    fn read_lines<P>(filename: P) -> impl Iterator<Item = String>
+    where
+        P: AsRef<Path>,
+    {
+        let file = File::open(filename).unwrap();
+        let reader = BufReader::new(file);
+        reader.lines().filter_map(Result::ok)
+    }
+
+    fn parse_lines_as_i32(lines: impl Iterator<Item = String>) -> impl Iterator<Item = i32> {
+        lines.filter_map(|line| line.trim().parse::<i32>().ok())
+    }
+
+    #[test]
+    fn test_1_1_sample() {
+        let input = "
+        199
+        200
+        208
+        210
+        200
+        207
+        240
+        269
+        260
+        263
+        "
+        .lines()
+        .map(|line| line.to_string());
+        let numbers: Vec<i32> = parse_lines_as_i32(input).collect();
+
+        let count = count_of_increasing_pairs_in_windowed_sums(&numbers, 1);
+
+        assert_eq!(count, 7);
+    }
+
+    #[test]
+    fn test_1_1() {
+        let lines = read_lines("input/2021/1.txt");
+        let numbers: Vec<i32> = parse_lines_as_i32(lines).collect();
+
+        let count = count_of_increasing_pairs_in_windowed_sums(&numbers, 1);
+
+        assert_eq!(count, 1583);
+    }
+
+    #[test]
+    fn test_1_2_sample() {
+        let input = "
+        199
+        200
+        208
+        210
+        200
+        207
+        240
+        269
+        260
+        263
+        "
+        .lines()
+        .map(|line| line.to_string());
+        let numbers: Vec<i32> = parse_lines_as_i32(input).collect();
+
+        let count = count_of_increasing_pairs_in_windowed_sums(&numbers, 3);
+
+        assert_eq!(count, 5);
+    }
+
+    #[test]
+    fn test_1_2() {
+        let lines = read_lines("input/2021/1.txt");
+        let numbers: Vec<i32> = parse_lines_as_i32(lines).collect();
+
+        let count = count_of_increasing_pairs_in_windowed_sums(&numbers, 3);
+
+        assert_eq!(count, 1627);
+    }
+
+    #[test]
+    fn test_2_1_sample() {
+        let input = "
+        forward 5
+        down 5
+        forward 8
+        up 3
+        down 8
+        forward 2
+        "
+        .lines()
+        .map(|line| line.to_string());
+        let commands = Command::parse_batch(input);
+
+        let result = calculate_distance(commands);
+
+        assert_eq!(result, 150);
+    }
+
+    #[test]
+    fn test_2_1() {
+        let input = read_lines("input/2021/2.txt");
+        let commands = Command::parse_batch(input);
+
+        let result = calculate_distance(commands);
+
+        assert_eq!(result, 2_150_351);
+    }
+
+    #[test]
+    fn test_2_2_sample() {
+        let input = "
+        forward 5
+        down 5
+        forward 8
+        up 3
+        down 8
+        forward 2
+        "
+        .lines()
+        .map(|line| line.to_string());
+        let commands = Command::parse_batch(input);
+
+        let result = calculate_aim_and_distance(commands);
+
+        assert_eq!(result, 900);
+    }
+
+    #[test]
+    fn test_2_2() {
+        let input = read_lines("input/2021/2.txt");
+        let commands = Command::parse_batch(input);
+
+        let result = calculate_aim_and_distance(commands);
+
+        assert_eq!(result, 1_842_742_223);
+    }
+
+    #[test]
+    fn test_3_1_sample() {
+        let input: Vec<String> = "
         00100
         11110
         10110
@@ -390,36 +394,36 @@ fn test_3_1_sample() {
         00010
         01010
         "
-    .lines()
-    .map(|line| line.trim().to_string())
-    .filter(|line| !line.is_empty())
-    .collect();
+        .lines()
+        .map(|line| line.trim().to_string())
+        .filter(|line| !line.is_empty())
+        .collect();
 
-    let gamma_rate = find_all_most_common_bits(&input);
-    let epsilon_rate = flip_binary_str_bits(&gamma_rate);
+        let gamma_rate = find_all_most_common_bits(&input);
+        let epsilon_rate = flip_binary_str_bits(&gamma_rate);
 
-    let power_consumption =
-        binary_str_to_decimal(&gamma_rate) * binary_str_to_decimal(&epsilon_rate);
+        let power_consumption =
+            binary_str_to_decimal(&gamma_rate) * binary_str_to_decimal(&epsilon_rate);
 
-    assert_eq!(power_consumption, 198)
-}
+        assert_eq!(power_consumption, 198)
+    }
 
-#[test]
-fn test_3_1() {
-    let input: Vec<String> = read_lines("input/2021/3.txt").collect();
+    #[test]
+    fn test_3_1() {
+        let input: Vec<String> = read_lines("input/2021/3.txt").collect();
 
-    let gamma_rate = find_all_most_common_bits(&input);
-    let epsilon_rate = flip_binary_str_bits(&gamma_rate);
+        let gamma_rate = find_all_most_common_bits(&input);
+        let epsilon_rate = flip_binary_str_bits(&gamma_rate);
 
-    let power_consumption =
-        binary_str_to_decimal(&gamma_rate) * binary_str_to_decimal(&epsilon_rate);
+        let power_consumption =
+            binary_str_to_decimal(&gamma_rate) * binary_str_to_decimal(&epsilon_rate);
 
-    assert_eq!(power_consumption, 3_633_500)
-}
+        assert_eq!(power_consumption, 3_633_500)
+    }
 
-#[test]
-fn test_3_2_sample() {
-    let input: Vec<String> = "
+    #[test]
+    fn test_3_2_sample() {
+        let input: Vec<String> = "
         00100
         11110
         10110
@@ -433,27 +437,28 @@ fn test_3_2_sample() {
         00010
         01010
         "
-    .lines()
-    .map(|line| line.trim().to_string())
-    .filter(|line| !line.is_empty())
-    .collect();
+        .lines()
+        .map(|line| line.trim().to_string())
+        .filter(|line| !line.is_empty())
+        .collect();
 
-    let oxygen_generator_rating = find_component_rating(input.clone(), BitCriteria::Oxygen);
-    let co2_scrubber_rating = find_component_rating(input, BitCriteria::CO2);
-    let life_support_rating = binary_str_to_decimal(&oxygen_generator_rating)
-        * binary_str_to_decimal(&co2_scrubber_rating);
+        let oxygen_generator_rating = find_component_rating(input.clone(), BitCriteria::Oxygen);
+        let co2_scrubber_rating = find_component_rating(input, BitCriteria::CO2);
+        let life_support_rating = binary_str_to_decimal(&oxygen_generator_rating)
+            * binary_str_to_decimal(&co2_scrubber_rating);
 
-    assert_eq!(life_support_rating, 230)
-}
+        assert_eq!(life_support_rating, 230)
+    }
 
-#[test]
-fn test_3_2() {
-    let input: Vec<String> = read_lines("input/2021/3.txt").collect();
+    #[test]
+    fn test_3_2() {
+        let input: Vec<String> = read_lines("input/2021/3.txt").collect();
 
-    let oxygen_generator_rating = find_component_rating(input.clone(), BitCriteria::Oxygen);
-    let co2_scrubber_rating = find_component_rating(input, BitCriteria::CO2);
-    let life_support_rating = binary_str_to_decimal(&oxygen_generator_rating)
-        * binary_str_to_decimal(&co2_scrubber_rating);
+        let oxygen_generator_rating = find_component_rating(input.clone(), BitCriteria::Oxygen);
+        let co2_scrubber_rating = find_component_rating(input, BitCriteria::CO2);
+        let life_support_rating = binary_str_to_decimal(&oxygen_generator_rating)
+            * binary_str_to_decimal(&co2_scrubber_rating);
 
-    assert_eq!(life_support_rating, 4_550_283)
+        assert_eq!(life_support_rating, 4_550_283)
+    }
 }
