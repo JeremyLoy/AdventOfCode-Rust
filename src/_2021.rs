@@ -1,5 +1,5 @@
 use itertools::Itertools;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::convert::identity;
 
 /// Counts the number of increasing pairs in windowed sums of given data.
@@ -49,10 +49,11 @@ pub enum Command {
 
 impl Command {
     pub fn parse(line: &str) -> Option<Self> {
-        let parts: Vec<&str> = line.split_whitespace().collect();
-        let (direction, amount) = (parts.get(0)?, parts.get(1)?);
+        let mut line = line.split_whitespace();
+        let direction = line.next()?;
+        let amount = line.next()?;
         let amount = amount.parse::<i32>().ok()?;
-        match *direction {
+        match direction {
             "forward" => Some(Self::Forward(amount)),
             "down" => Some(Self::Down(amount)),
             "up" => Some(Self::Up(amount)),
@@ -199,9 +200,9 @@ impl BingoBoard {
         let number = number_str.parse::<i32>().ok()?;
         Some(BingoCell::Unmarked(number))
     }
-    pub fn parse(input: &[String]) -> Option<Self> {
+    pub fn parse<I: Iterator<Item = String>>(input: I) -> Option<Self> {
         let mut board = [[BingoCell::Unmarked(0); 5]; 5];
-        for (i, line) in input.iter().enumerate() {
+        for (i, line) in input.enumerate() {
             for (j, number_str) in line.split_whitespace().enumerate() {
                 board[i][j] = Self::parse_cell(number_str)?;
             }
@@ -215,7 +216,7 @@ impl BingoBoard {
             .filter(|line| !line.is_empty())
             .chunks(5)
             .into_iter()
-            .map(|chunk| BingoBoard::parse(chunk.collect_vec().as_mut_slice()))
+            .map(BingoBoard::parse)
             .filter_map(identity)
             .collect()
     }
@@ -261,6 +262,36 @@ impl BingoBoard {
         }
         false
     }
+}
+
+pub fn parse_calls_and_bingo_boards<I: Iterator<Item = String>>(
+    mut lines: I,
+) -> (Vec<i32>, Vec<BingoBoard>) {
+    let calls = lines.next().unwrap();
+    let calls = calls
+        .split(',')
+        .filter_map(|s| s.parse::<i32>().ok())
+        .collect();
+    let boards = BingoBoard::parse_batch(lines);
+    (calls, boards)
+}
+
+pub fn play_bingo(calls: Vec<i32>, mut boards: Vec<BingoBoard>) -> Vec<i32> {
+    let mut winning_scores = Vec::new();
+    let mut past_winners = HashSet::new();
+
+    for call in calls {
+        for i in 0..boards.len() {
+            let board = boards.get_mut(i).unwrap();
+            board.mark(call);
+            if board.is_winner() && !past_winners.contains(&i) {
+                winning_scores.push(board.calculate_score(call));
+                past_winners.insert(i);
+            }
+        }
+    }
+
+    winning_scores
 }
 
 pub fn find_component_rating(mut binary_report: Vec<String>, bit_criteria: BitCriteria) -> String {
@@ -321,7 +352,6 @@ pub fn binary_str_to_decimal(binary: &str) -> i32 {
 mod test {
     use super::*;
     use crate::_2021::test::Input::{Path, Raw};
-    use std::collections::HashSet;
     use std::fs::File;
     use std::io::{BufRead, BufReader};
 
@@ -551,7 +581,7 @@ mod test {
 
     #[test]
     fn test_4_1_sample() {
-        let mut input = to_lines(Raw("
+        let input = to_lines(Raw("
         7,4,9,5,11,17,23,2,0,14,21,24,10,16,13,6,15,25,12,22,18,20,8,19,3,26,1
 
         22 13 17 11  0
@@ -573,51 +603,27 @@ mod test {
          2  0 12  3  7
         "));
 
-        let calls: Vec<i32> = input
-            .next()
-            .unwrap()
-            .split(',')
-            .filter_map(|s| s.parse::<i32>().ok())
-            .collect();
-        let mut boards = BingoBoard::parse_batch(input);
-        for call in calls {
-            for board in boards.iter_mut() {
-                board.mark(call);
-                if board.is_winner() {
-                    assert_eq!(board.calculate_score(call), 4_512);
-                    return;
-                }
-            }
-        }
-        panic!("no winner was found");
+        let (calls, boards) = parse_calls_and_bingo_boards(input);
+
+        let winning_scores = play_bingo(calls, boards);
+
+        assert_eq!(*winning_scores.first().unwrap(), 4_512);
     }
 
     #[test]
     fn test_4_1() {
-        let mut input = to_lines(Path("input/2021/4.txt"));
+        let input = to_lines(Path("input/2021/4.txt"));
 
-        let calls: Vec<i32> = input
-            .next()
-            .unwrap()
-            .split(',')
-            .filter_map(|s| s.parse::<i32>().ok())
-            .collect();
-        let mut boards = BingoBoard::parse_batch(input);
-        for call in calls {
-            for board in boards.iter_mut() {
-                board.mark(call);
-                if board.is_winner() {
-                    assert_eq!(board.calculate_score(call), 8_136);
-                    return;
-                }
-            }
-        }
-        panic!("no winner was found");
+        let (calls, boards) = parse_calls_and_bingo_boards(input);
+
+        let winning_scores = play_bingo(calls, boards);
+
+        assert_eq!(*winning_scores.first().unwrap(), 8_136);
     }
 
     #[test]
     fn test_4_2_sample() {
-        let mut input = to_lines(Raw("
+        let input = to_lines(Raw("
         7,4,9,5,11,17,23,2,0,14,21,24,10,16,13,6,15,25,12,22,18,20,8,19,3,26,1
 
         22 13 17 11  0
@@ -639,55 +645,21 @@ mod test {
          2  0 12  3  7
         "));
 
-        let calls: Vec<i32> = input
-            .next()
-            .unwrap()
-            .split(',')
-            .filter_map(|s| s.parse::<i32>().ok())
-            .collect();
-        let mut boards = BingoBoard::parse_batch(input);
-        let mut last_winning_score = 0;
-        let mut past_winners = HashSet::new();
+        let (calls, boards) = parse_calls_and_bingo_boards(input);
 
-        for call in calls {
-            for i in 0..boards.len() {
-                let board = boards.get_mut(i).unwrap();
-                board.mark(call);
-                if board.is_winner() && !past_winners.contains(&i) {
-                    last_winning_score = board.calculate_score(call);
-                    past_winners.insert(i);
-                }
-            }
-        }
+        let winning_scores = play_bingo(calls, boards);
 
-        assert_eq!(last_winning_score, 1_924);
+        assert_eq!(*winning_scores.last().unwrap(), 1_924);
     }
 
     #[test]
     fn test_4_2() {
-        let mut input = to_lines(Path("input/2021/4.txt"));
+        let input = to_lines(Path("input/2021/4.txt"));
 
-        let calls: Vec<i32> = input
-            .next()
-            .unwrap()
-            .split(',')
-            .filter_map(|s| s.parse::<i32>().ok())
-            .collect();
-        let mut boards = BingoBoard::parse_batch(input);
-        let mut last_winning_score = 0;
-        let mut past_winners = HashSet::new();
+        let (calls, boards) = parse_calls_and_bingo_boards(input);
 
-        for call in calls {
-            for i in 0..boards.len() {
-                let board = boards.get_mut(i).unwrap();
-                board.mark(call);
-                if board.is_winner() && !past_winners.contains(&i) {
-                    last_winning_score = board.calculate_score(call);
-                    past_winners.insert(i);
-                }
-            }
-        }
+        let winning_scores = play_bingo(calls, boards);
 
-        assert_eq!(last_winning_score, 12_738);
+        assert_eq!(*winning_scores.last().unwrap(), 12_738);
     }
 }
