@@ -267,7 +267,7 @@ impl BingoBoard {
 pub fn parse_calls_and_bingo_boards<I: Iterator<Item = String>>(
     mut lines: I,
 ) -> (Vec<i32>, Vec<BingoBoard>) {
-    let calls = lines.next().unwrap();
+    let calls = lines.next().unwrap_or_default();
     let calls = calls
         .split(',')
         .filter_map(|s| s.parse::<i32>().ok())
@@ -281,14 +281,20 @@ pub fn play_bingo(calls: Vec<i32>, mut boards: Vec<BingoBoard>) -> Vec<i32> {
     let mut past_winners = HashSet::new();
 
     for call in calls {
-        for i in 0..boards.len() {
-            let board = boards.get_mut(i).unwrap();
+        for (i, board) in boards.iter_mut().enumerate() {
             board.mark(call);
-            if board.is_winner() && !past_winners.contains(&i) {
+            if board.is_winner() {
                 winning_scores.push(board.calculate_score(call));
                 past_winners.insert(i);
             }
         }
+        let mut i: usize = 0;
+        boards.retain(|_| {
+            let keep = !past_winners.contains(&i);
+            i += 1;
+            keep
+        });
+        past_winners.clear()
     }
 
     winning_scores
@@ -383,6 +389,83 @@ mod test {
 
     fn parse_lines_as_i32(lines: impl Iterator<Item = String>) -> impl Iterator<Item = i32> {
         lines.filter_map(|line| line.trim().parse::<i32>().ok())
+    }
+
+    #[derive(Hash, Eq, PartialEq, Copy, Clone)]
+    pub struct Point {
+        x: i32,
+        y: i32,
+    }
+    impl Point {
+        pub fn parse_line_to_point(point_str: &str) -> Option<Self> {
+            let (x_str, y_str) = point_str.split_once(",")?;
+            let x = x_str.trim().parse::<i32>().ok()?;
+            let y = y_str.trim().parse::<i32>().ok()?;
+            Some(Point { x, y })
+        }
+
+        pub fn parse_line_to_pair(line: &str) -> Option<(Self, Self)> {
+            let (start_str, end_str) = line.split_once("->")?;
+            let start_point = Self::parse_line_to_point(start_str)?;
+            let end_point = Self::parse_line_to_point(end_str)?;
+            Some((start_point, end_point))
+        }
+
+        pub fn parse_batch<I: Iterator<Item = String>>(lines: I) -> Vec<(Self, Self)> {
+            lines
+                .into_iter()
+                .filter_map(|line| Self::parse_line_to_pair(&line))
+                .collect()
+        }
+    }
+
+    pub enum Diagonals {
+        Include,
+        Exclude,
+    }
+
+    pub fn plot_points(
+        points: Vec<(Point, Point)>,
+        plot_diagonals: Diagonals,
+    ) -> HashMap<Point, i32> {
+        let mut grid = HashMap::new();
+        for (mut start, end) in points {
+            if matches!(plot_diagonals, Diagonals::Exclude) && start.x != end.x && start.y != end.y
+            {
+                continue;
+            }
+            while start.x != end.x || start.y != end.y {
+                let count = grid.entry(start).or_insert(0);
+                *count += 1;
+
+                if start.x < end.x {
+                    start.x += 1;
+                }
+                if start.x > end.x {
+                    start.x -= 1;
+                }
+
+                if start.y < end.y {
+                    start.y += 1;
+                }
+                if start.y > end.y {
+                    start.y -= 1;
+                }
+            }
+            let count = grid.entry(start).or_insert(0);
+            *count += 1;
+        }
+        grid
+    }
+
+    pub fn count_overlapping_points(grid: HashMap<Point, i32>) -> i32 {
+        let mut count = 0;
+        for (_point, value) in grid {
+            if value > 1 {
+                count += 1
+            }
+        }
+        count
     }
 
     #[test]
@@ -661,5 +744,63 @@ mod test {
         let winning_scores = play_bingo(calls, boards);
 
         assert_eq!(*winning_scores.last().unwrap(), 12_738);
+    }
+
+    #[test]
+    fn test_5_1_sample() {
+        let input = to_lines(Raw("
+        0,9 -> 5,9
+        8,0 -> 0,8
+        9,4 -> 3,4
+        2,2 -> 2,1
+        7,0 -> 7,4
+        6,4 -> 2,0
+        0,9 -> 2,9
+        3,4 -> 1,4
+        0,0 -> 8,8
+        5,5 -> 8,2
+        "));
+
+        let grid = plot_points(Point::parse_batch(input), Diagonals::Exclude);
+
+        assert_eq!(count_overlapping_points(grid), 5);
+    }
+
+    #[test]
+    fn test_5_1() {
+        let input = to_lines(Path("input/2021/5.txt"));
+
+        let grid = plot_points(Point::parse_batch(input), Diagonals::Exclude);
+
+        assert_eq!(count_overlapping_points(grid), 8_111);
+    }
+
+    #[test]
+    fn test_5_2_sample() {
+        let input = to_lines(Raw("
+        0,9 -> 5,9
+        8,0 -> 0,8
+        9,4 -> 3,4
+        2,2 -> 2,1
+        7,0 -> 7,4
+        6,4 -> 2,0
+        0,9 -> 2,9
+        3,4 -> 1,4
+        0,0 -> 8,8
+        5,5 -> 8,2
+        "));
+
+        let grid = plot_points(Point::parse_batch(input), Diagonals::Include);
+
+        assert_eq!(count_overlapping_points(grid), 12);
+    }
+
+    #[test]
+    fn test_5_2() {
+        let input = to_lines(Path("input/2021/5.txt"));
+
+        let grid = plot_points(Point::parse_batch(input), Diagonals::Include);
+
+        assert_eq!(count_overlapping_points(grid), 22_088);
     }
 }
