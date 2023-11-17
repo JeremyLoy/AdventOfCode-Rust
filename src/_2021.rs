@@ -354,6 +354,104 @@ pub fn binary_str_to_decimal(binary: &str) -> i32 {
     i32::from_str_radix(binary, 2).expect("Failed to convert binary string to decimal")
 }
 
+#[derive(Hash, Eq, PartialEq, Copy, Clone)]
+pub struct Point {
+    x: i32,
+    y: i32,
+}
+impl Point {
+    pub fn parse_line_to_point(point_str: &str) -> Option<Self> {
+        let (x_str, y_str) = point_str.split_once(",")?;
+        let x = x_str.trim().parse::<i32>().ok()?;
+        let y = y_str.trim().parse::<i32>().ok()?;
+        Some(Point { x, y })
+    }
+
+    pub fn parse_line_to_pair(line: &str) -> Option<(Self, Self)> {
+        let (start_str, end_str) = line.split_once("->")?;
+        let start_point = Self::parse_line_to_point(start_str)?;
+        let end_point = Self::parse_line_to_point(end_str)?;
+        Some((start_point, end_point))
+    }
+
+    pub fn parse_batch<I: Iterator<Item = String>>(lines: I) -> Vec<(Self, Self)> {
+        lines
+            .into_iter()
+            .filter_map(|line| Self::parse_line_to_pair(&line))
+            .collect()
+    }
+}
+
+pub enum Diagonals {
+    Include,
+    Exclude,
+}
+
+pub fn plot_points(points: Vec<(Point, Point)>, plot_diagonals: Diagonals) -> HashMap<Point, i32> {
+    let mut grid = HashMap::new();
+    for (mut start, end) in points {
+        if matches!(plot_diagonals, Diagonals::Exclude) && start.x != end.x && start.y != end.y {
+            continue;
+        }
+        while start.x != end.x || start.y != end.y {
+            let count = grid.entry(start).or_insert(0);
+            *count += 1;
+
+            if start.x < end.x {
+                start.x += 1;
+            }
+            if start.x > end.x {
+                start.x -= 1;
+            }
+
+            if start.y < end.y {
+                start.y += 1;
+            }
+            if start.y > end.y {
+                start.y -= 1;
+            }
+        }
+        let count = grid.entry(start).or_insert(0);
+        *count += 1;
+    }
+    grid
+}
+
+pub fn count_overlapping_points(grid: HashMap<Point, i32>) -> i32 {
+    let mut count = 0;
+    for (_point, value) in grid {
+        if value > 1 {
+            count += 1
+        }
+    }
+    count
+}
+
+pub fn parse_lantern_fish_histogram<I: Iterator<Item = String>>(mut i: I) -> Vec<u128> {
+    let mut vec: Vec<u128> = [0; 9].to_vec();
+    i.next()
+        .unwrap_or_default()
+        .split(',')
+        .filter_map(|i| i.parse::<usize>().ok())
+        .for_each(|i| *vec.get_mut(i).unwrap() += 1);
+    vec
+}
+
+pub fn advance_lantern_fish_days(mut hist: Vec<u128>, days: i32) -> u128 {
+    for _ in 0..days {
+        hist.rotate_left(1);
+        // Every 0 spawned exactly one fish. In other words, the number of new parents is equal to the
+        // number of new children.
+        // Parents should reset to 6 as opposed to new children being 8
+        //
+        // Therefore:
+        // 6 = the old 7's + the new parents
+        hist[6] += hist[8];
+    }
+
+    hist.iter().sum()
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -389,83 +487,6 @@ mod test {
 
     fn parse_lines_as_i32(lines: impl Iterator<Item = String>) -> impl Iterator<Item = i32> {
         lines.filter_map(|line| line.trim().parse::<i32>().ok())
-    }
-
-    #[derive(Hash, Eq, PartialEq, Copy, Clone)]
-    pub struct Point {
-        x: i32,
-        y: i32,
-    }
-    impl Point {
-        pub fn parse_line_to_point(point_str: &str) -> Option<Self> {
-            let (x_str, y_str) = point_str.split_once(",")?;
-            let x = x_str.trim().parse::<i32>().ok()?;
-            let y = y_str.trim().parse::<i32>().ok()?;
-            Some(Point { x, y })
-        }
-
-        pub fn parse_line_to_pair(line: &str) -> Option<(Self, Self)> {
-            let (start_str, end_str) = line.split_once("->")?;
-            let start_point = Self::parse_line_to_point(start_str)?;
-            let end_point = Self::parse_line_to_point(end_str)?;
-            Some((start_point, end_point))
-        }
-
-        pub fn parse_batch<I: Iterator<Item = String>>(lines: I) -> Vec<(Self, Self)> {
-            lines
-                .into_iter()
-                .filter_map(|line| Self::parse_line_to_pair(&line))
-                .collect()
-        }
-    }
-
-    pub enum Diagonals {
-        Include,
-        Exclude,
-    }
-
-    pub fn plot_points(
-        points: Vec<(Point, Point)>,
-        plot_diagonals: Diagonals,
-    ) -> HashMap<Point, i32> {
-        let mut grid = HashMap::new();
-        for (mut start, end) in points {
-            if matches!(plot_diagonals, Diagonals::Exclude) && start.x != end.x && start.y != end.y
-            {
-                continue;
-            }
-            while start.x != end.x || start.y != end.y {
-                let count = grid.entry(start).or_insert(0);
-                *count += 1;
-
-                if start.x < end.x {
-                    start.x += 1;
-                }
-                if start.x > end.x {
-                    start.x -= 1;
-                }
-
-                if start.y < end.y {
-                    start.y += 1;
-                }
-                if start.y > end.y {
-                    start.y -= 1;
-                }
-            }
-            let count = grid.entry(start).or_insert(0);
-            *count += 1;
-        }
-        grid
-    }
-
-    pub fn count_overlapping_points(grid: HashMap<Point, i32>) -> i32 {
-        let mut count = 0;
-        for (_point, value) in grid {
-            if value > 1 {
-                count += 1
-            }
-        }
-        count
     }
 
     #[test]
@@ -802,5 +823,49 @@ mod test {
         let grid = plot_points(Point::parse_batch(input), Diagonals::Include);
 
         assert_eq!(count_overlapping_points(grid), 22_088);
+    }
+
+    #[test]
+    fn test_6_1_sample() {
+        let input = to_lines(Raw("3,4,3,1,2"));
+
+        let lantern_fish = parse_lantern_fish_histogram(input);
+
+        let total = advance_lantern_fish_days(lantern_fish, 80);
+
+        assert_eq!(total, 5_934);
+    }
+
+    #[test]
+    fn test_6_1() {
+        let input = to_lines(Path("input/2021/6.txt"));
+
+        let lantern_fish = parse_lantern_fish_histogram(input);
+
+        let total = advance_lantern_fish_days(lantern_fish, 80);
+
+        assert_eq!(total, 363_101);
+    }
+
+    #[test]
+    fn test_6_2_sample() {
+        let input = to_lines(Raw("3,4,3,1,2"));
+
+        let lantern_fish = parse_lantern_fish_histogram(input);
+
+        let total = advance_lantern_fish_days(lantern_fish, 256);
+
+        assert_eq!(total, 26_984_457_539);
+    }
+
+    #[test]
+    fn test_6_2() {
+        let input = to_lines(Path("input/2021/6.txt"));
+
+        let lantern_fish = parse_lantern_fish_histogram(input);
+
+        let total = advance_lantern_fish_days(lantern_fish, 256);
+
+        assert_eq!(total, 1_644_286_074_024);
     }
 }
