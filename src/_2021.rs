@@ -61,7 +61,7 @@ impl Command {
         }
     }
 
-    pub fn parse_batch<I: IntoIterator<Item = String>>(lines: I) -> Vec<Self> {
+    pub fn parse_batch(lines: impl Iterator<Item = String>) -> Vec<Self> {
         lines
             .into_iter()
             .filter_map(|line| Self::parse(&line))
@@ -184,122 +184,6 @@ pub enum BitCriteria {
     CO2,
 }
 
-#[derive(Debug)]
-pub struct BingoBoard {
-    board: [[BingoCell; 5]; 5],
-}
-
-#[derive(Debug, Copy, Clone)]
-pub enum BingoCell {
-    Marked(i32),
-    Unmarked(i32),
-}
-impl BingoBoard {
-    // Extracting cell parsing logic to a separate function
-    fn parse_cell(number_str: &str) -> Option<BingoCell> {
-        let number = number_str.parse::<i32>().ok()?;
-        Some(BingoCell::Unmarked(number))
-    }
-    pub fn parse<I: Iterator<Item = String>>(input: I) -> Option<Self> {
-        let mut board = [[BingoCell::Unmarked(0); 5]; 5];
-        for (i, line) in input.enumerate() {
-            for (j, number_str) in line.split_whitespace().enumerate() {
-                board[i][j] = Self::parse_cell(number_str)?;
-            }
-        }
-        Some(BingoBoard { board })
-    }
-
-    pub fn parse_batch<I: Iterator<Item = String>>(lines: I) -> Vec<Self> {
-        lines
-            .map(|line| line.trim().to_string())
-            .filter(|line| !line.is_empty())
-            .chunks(5)
-            .into_iter()
-            .map(BingoBoard::parse)
-            .filter_map(identity)
-            .collect()
-    }
-
-    pub fn calculate_score(&self, last_call: i32) -> i32 {
-        let mut score = 0;
-        for row in self.board.iter() {
-            for cell in row.iter() {
-                if let BingoCell::Unmarked(value) = cell {
-                    score += value;
-                }
-            }
-        }
-        score * last_call
-    }
-
-    pub fn mark(&mut self, number: i32) {
-        for row in self.board.iter_mut() {
-            for cell in row.iter_mut() {
-                if let BingoCell::Unmarked(value) = cell {
-                    if *value == number {
-                        *cell = BingoCell::Marked(number);
-                    }
-                }
-            }
-        }
-    }
-
-    pub fn is_winner(&self) -> bool {
-        for row in self.board.iter() {
-            if row.iter().all(|&cell| matches!(cell, BingoCell::Marked(_))) {
-                return true;
-            }
-        }
-        for col in 0..5 {
-            if self
-                .board
-                .iter()
-                .all(|row| matches!(row[col], BingoCell::Marked(_)))
-            {
-                return true;
-            }
-        }
-        false
-    }
-}
-
-pub fn parse_calls_and_bingo_boards<I: Iterator<Item = String>>(
-    mut lines: I,
-) -> (Vec<i32>, Vec<BingoBoard>) {
-    let calls = lines.next().unwrap_or_default();
-    let calls = calls
-        .split(',')
-        .filter_map(|s| s.parse::<i32>().ok())
-        .collect();
-    let boards = BingoBoard::parse_batch(lines);
-    (calls, boards)
-}
-
-pub fn play_bingo(calls: Vec<i32>, mut boards: Vec<BingoBoard>) -> Vec<i32> {
-    let mut winning_scores = Vec::new();
-    let mut past_winners = HashSet::new();
-
-    for call in calls {
-        for (i, board) in boards.iter_mut().enumerate() {
-            board.mark(call);
-            if board.is_winner() {
-                winning_scores.push(board.calculate_score(call));
-                past_winners.insert(i);
-            }
-        }
-        let mut i: usize = 0;
-        boards.retain(|_| {
-            let keep = !past_winners.contains(&i);
-            i += 1;
-            keep
-        });
-        past_winners.clear()
-    }
-
-    winning_scores
-}
-
 pub fn find_component_rating(mut binary_report: Vec<String>, bit_criteria: BitCriteria) -> String {
     let mut freq0 = 0;
     let mut freq1 = 0;
@@ -354,6 +238,120 @@ pub fn binary_str_to_decimal(binary: &str) -> i32 {
     i32::from_str_radix(binary, 2).expect("Failed to convert binary string to decimal")
 }
 
+#[derive(Debug)]
+pub struct BingoBoard([[BingoCell; 5]; 5]);
+
+#[derive(Debug, Copy, Clone)]
+pub enum BingoCell {
+    Marked(i32),
+    Unmarked(i32),
+}
+impl BingoBoard {
+    // Extracting cell parsing logic to a separate function
+    fn parse_cell(number_str: &str) -> Option<BingoCell> {
+        let number = number_str.parse::<i32>().ok()?;
+        Some(BingoCell::Unmarked(number))
+    }
+    pub fn parse(input: impl Iterator<Item = String>) -> Option<Self> {
+        let mut board = [[BingoCell::Unmarked(0); 5]; 5];
+        for (i, line) in input.enumerate() {
+            for (j, number_str) in line.split_whitespace().enumerate() {
+                board[i][j] = Self::parse_cell(number_str)?;
+            }
+        }
+        Some(BingoBoard(board))
+    }
+
+    pub fn parse_batch(lines: impl Iterator<Item = String>) -> Vec<Self> {
+        lines
+            .map(|line| line.trim().to_string())
+            .filter(|line| !line.is_empty())
+            .chunks(5)
+            .into_iter()
+            .map(BingoBoard::parse)
+            .filter_map(identity)
+            .collect()
+    }
+
+    pub fn calculate_score(&self, last_call: i32) -> i32 {
+        let mut score = 0;
+        for row in self.0.iter() {
+            for cell in row.iter() {
+                if let BingoCell::Unmarked(value) = cell {
+                    score += value;
+                }
+            }
+        }
+        score * last_call
+    }
+
+    pub fn mark(&mut self, number: i32) {
+        for row in self.0.iter_mut() {
+            for cell in row.iter_mut() {
+                if let BingoCell::Unmarked(value) = cell {
+                    if *value == number {
+                        *cell = BingoCell::Marked(number);
+                    }
+                }
+            }
+        }
+    }
+
+    pub fn is_winner(&self) -> bool {
+        for row in self.0.iter() {
+            if row.iter().all(|&cell| matches!(cell, BingoCell::Marked(_))) {
+                return true;
+            }
+        }
+        for col in 0..5 {
+            if self
+                .0
+                .iter()
+                .all(|row| matches!(row[col], BingoCell::Marked(_)))
+            {
+                return true;
+            }
+        }
+        false
+    }
+}
+
+pub fn parse_calls_and_bingo_boards(
+    mut lines: impl Iterator<Item = String>,
+) -> (Vec<i32>, Vec<BingoBoard>) {
+    let calls = lines.next().unwrap_or_default();
+    let calls = calls
+        .split(',')
+        .filter_map(|s| s.parse::<i32>().ok())
+        .collect();
+    let boards = BingoBoard::parse_batch(lines);
+    (calls, boards)
+}
+
+pub fn play_bingo(calls: Vec<i32>, mut boards: Vec<BingoBoard>) -> Vec<i32> {
+    let mut winning_scores = Vec::new();
+    let mut past_winners = HashSet::new();
+
+    for call in calls {
+        for (i, board) in boards.iter_mut().enumerate() {
+            board.mark(call);
+            if board.is_winner() {
+                winning_scores.push(board.calculate_score(call));
+                past_winners.insert(i);
+            }
+        }
+        let mut i: usize = 0;
+        boards.retain(|_| {
+            let keep = !past_winners.contains(&i);
+            i += 1;
+            keep
+        });
+        past_winners.clear()
+    }
+
+    winning_scores
+}
+
 #[derive(Hash, Eq, PartialEq, Copy, Clone)]
 pub struct Point {
     x: i32,
@@ -374,11 +372,10 @@ impl Point {
         Some((start_point, end_point))
     }
 
-    pub fn parse_batch<I: Iterator<Item = String>>(lines: I) -> Vec<(Self, Self)> {
+    pub fn parse_batch(lines: impl Iterator<Item = String>) -> impl Iterator<Item = (Self, Self)> {
         lines
             .into_iter()
             .filter_map(|line| Self::parse_line_to_pair(&line))
-            .collect()
     }
 }
 
@@ -387,7 +384,10 @@ pub enum Diagonals {
     Exclude,
 }
 
-pub fn plot_points(points: Vec<(Point, Point)>, plot_diagonals: Diagonals) -> HashMap<Point, i32> {
+pub fn plot_points(
+    points: impl Iterator<Item = (Point, Point)>,
+    plot_diagonals: Diagonals,
+) -> HashMap<Point, i32> {
     let mut grid = HashMap::new();
     for (mut start, end) in points {
         if matches!(plot_diagonals, Diagonals::Exclude) && start.x != end.x && start.y != end.y {
@@ -427,7 +427,7 @@ pub fn count_overlapping_points(grid: HashMap<Point, i32>) -> i32 {
     count
 }
 
-pub fn parse_lantern_fish_histogram<I: Iterator<Item = String>>(mut i: I) -> Vec<u128> {
+pub fn parse_lantern_fish_histogram(mut i: impl Iterator<Item = String>) -> Vec<u128> {
     let mut vec: Vec<u128> = [0; 9].to_vec();
     i.next()
         .unwrap_or_default()
