@@ -452,6 +452,42 @@ pub fn advance_lantern_fish_days(mut hist: Vec<u128>, days: i32) -> u128 {
     hist.iter().sum()
 }
 
+/// Calculates the Nth triangle number.
+///
+/// A triangle number is the sum of all positive integers up to and including N.
+/// The formula used to calculate the Nth triangle number is (N * (N + 1)) / 2.
+///
+/// # Arguments
+///
+/// * `n` - The Nth number for which the triangle number needs to be calculated.
+///
+/// # Returns
+///
+/// The Nth triangle number.
+///
+/// # Example
+///
+/// ```rust
+/// # use advent_of_code_rust::_2021::triangle_number;
+/// assert_eq!(triangle_number(5), 5 + 4 + 3 + 2 + 1);
+/// ```
+pub fn triangle_number(n: i32) -> i32 {
+    (n * (n + 1)) / 2
+}
+
+pub fn find_cheapest_horizontal_position(crabs: Vec<i32>, fuel_calculator: fn(i32) -> i32) -> i32 {
+    let max_crab_pos = *crabs.iter().max().unwrap();
+    (0..max_crab_pos)
+        .map(|horiz_pos| {
+            crabs
+                .iter()
+                .map(|&crab_pos| fuel_calculator((horiz_pos - crab_pos).abs()))
+                .sum()
+        })
+        .min()
+        .unwrap()
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -867,5 +903,59 @@ mod test {
         let total = advance_lantern_fish_days(lantern_fish, 256);
 
         assert_eq!(total, 1_644_286_074_024);
+    }
+
+    #[test]
+    fn test_7_1_sample() {
+        let input = to_lines(Raw("16,1,2,0,4,2,7,1,2,14")).next().unwrap();
+
+        let crabs = input
+            .split(",")
+            .filter_map(|s| s.parse::<i32>().ok())
+            .collect_vec();
+
+        assert_eq!(find_cheapest_horizontal_position(crabs, identity), 37);
+    }
+
+    #[test]
+    fn test_7_1() {
+        let input = to_lines(Path("input/2021/7.txt")).next().unwrap();
+
+        let crabs = input
+            .split(",")
+            .filter_map(|s| s.parse::<i32>().ok())
+            .collect_vec();
+
+        assert_eq!(find_cheapest_horizontal_position(crabs, identity), 348_996);
+    }
+
+    #[test]
+    fn test_7_2_sample() {
+        let input = to_lines(Raw("16,1,2,0,4,2,7,1,2,14")).next().unwrap();
+
+        let crabs = input
+            .split(",")
+            .filter_map(|s| s.parse::<i32>().ok())
+            .collect_vec();
+
+        assert_eq!(
+            find_cheapest_horizontal_position(crabs, triangle_number),
+            168
+        );
+    }
+
+    #[test]
+    fn test_7_2() {
+        let input = to_lines(Path("input/2021/7.txt")).next().unwrap();
+
+        let crabs = input
+            .split(",")
+            .filter_map(|s| s.parse::<i32>().ok())
+            .collect_vec();
+
+        assert_eq!(
+            find_cheapest_horizontal_position(crabs, triangle_number),
+            98_231_647
+        );
     }
 }
