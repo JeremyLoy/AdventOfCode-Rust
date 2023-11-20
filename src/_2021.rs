@@ -418,23 +418,19 @@ pub fn plot_points(
 }
 
 pub fn count_overlapping_points(grid: HashMap<Point, i32>) -> i32 {
-    let mut count = 0;
-    for (_point, value) in grid {
+    grid.into_iter().fold(0, |mut count, (_point, value)| {
         if value > 1 {
-            count += 1
+            count += 1;
         }
-    }
-    count
+        count
+    })
 }
 
-pub fn parse_lantern_fish_histogram(mut i: impl Iterator<Item = String>) -> Vec<u128> {
-    let mut vec: Vec<u128> = [0; 9].to_vec();
-    i.next()
-        .unwrap_or_default()
-        .split(',')
-        .filter_map(|i| i.parse::<usize>().ok())
-        .for_each(|i| *vec.get_mut(i).unwrap() += 1);
-    vec
+pub fn parse_lantern_fish_histogram(input: Vec<usize>) -> Vec<u128> {
+    input.iter().fold(vec![0; 9], |mut acc, &i| {
+        acc[i] += 1;
+        acc
+    })
 }
 
 pub fn advance_lantern_fish_days(mut hist: Vec<u128>, days: i32) -> u128 {
@@ -491,13 +487,21 @@ pub fn find_cheapest_horizontal_position(crabs: Vec<i32>, fuel_calculator: fn(i3
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::_2021::test::Input::{Path, Raw};
+    use crate::_2021::test::Input::*;
+    use crate::_2021::test::Separator::*;
+    use std::fmt::Debug;
     use std::fs::File;
-    use std::io::{BufRead, BufReader};
+    use std::io::{BufRead, BufReader, Read};
+    use std::str::FromStr;
 
     enum Input<'a> {
         Path(&'a str),
         Raw(&'a str),
+    }
+
+    enum Separator {
+        Comma,
+        Newline,
     }
 
     fn to_lines(input: Input) -> Box<dyn Iterator<Item = String> + '_> {
@@ -521,13 +525,34 @@ mod test {
         }
     }
 
-    fn parse_lines_as_i32(lines: impl Iterator<Item = String>) -> impl Iterator<Item = i32> {
-        lines.filter_map(|line| line.trim().parse::<i32>().ok())
+    fn to_vec<T>(input: Input, delim: Separator) -> Vec<T>
+    where
+        T: FromStr,
+        <T as FromStr>::Err: Debug,
+    {
+        let str = match input {
+            Path(path) => {
+                let mut file = File::open(path).unwrap();
+                let mut str = String::new();
+                file.read_to_string(&mut str).unwrap_or_default();
+                str
+            }
+            Raw(s) => s.to_string(),
+        };
+        let string_parser = |s: &str| s.parse::<T>().ok();
+        match delim {
+            Newline => str
+                .lines()
+                .map(|s| s.trim())
+                .filter_map(string_parser)
+                .collect_vec(),
+            Comma => str.split(",").filter_map(string_parser).collect_vec(),
+        }
     }
 
     #[test]
     fn test_1_1_sample() {
-        let input = to_lines(Raw("
+        let input = "
         199
         200
         208
@@ -538,8 +563,8 @@ mod test {
         269
         260
         263
-        "));
-        let numbers: Vec<i32> = parse_lines_as_i32(input).collect();
+        ";
+        let numbers = to_vec(Raw(input), Newline);
 
         let count = count_of_increasing_pairs_in_windowed_sums(&numbers, 1);
 
@@ -548,8 +573,7 @@ mod test {
 
     #[test]
     fn test_1_1() {
-        let lines = to_lines(Path("input/2021/1.txt"));
-        let numbers: Vec<i32> = parse_lines_as_i32(lines).collect();
+        let numbers = to_vec(Path("input/2021/1.txt"), Newline);
 
         let count = count_of_increasing_pairs_in_windowed_sums(&numbers, 1);
 
@@ -558,7 +582,7 @@ mod test {
 
     #[test]
     fn test_1_2_sample() {
-        let input = to_lines(Raw("
+        let input = "
         199
         200
         208
@@ -569,8 +593,8 @@ mod test {
         269
         260
         263
-        "));
-        let numbers: Vec<i32> = parse_lines_as_i32(input).collect();
+        ";
+        let numbers = to_vec(Raw(input), Newline);
 
         let count = count_of_increasing_pairs_in_windowed_sums(&numbers, 3);
 
@@ -579,8 +603,7 @@ mod test {
 
     #[test]
     fn test_1_2() {
-        let lines = to_lines(Path("input/2021/1.txt"));
-        let numbers: Vec<i32> = parse_lines_as_i32(lines).collect();
+        let numbers: Vec<i32> = to_vec(Path("input/2021/1.txt"), Newline);
 
         let count = count_of_increasing_pairs_in_windowed_sums(&numbers, 3);
 
@@ -863,7 +886,7 @@ mod test {
 
     #[test]
     fn test_6_1_sample() {
-        let input = to_lines(Raw("3,4,3,1,2"));
+        let input = to_vec(Raw("3,4,3,1,2"), Comma);
 
         let lantern_fish = parse_lantern_fish_histogram(input);
 
@@ -874,7 +897,7 @@ mod test {
 
     #[test]
     fn test_6_1() {
-        let input = to_lines(Path("input/2021/6.txt"));
+        let input = to_vec(Path("input/2021/6.txt"), Comma);
 
         let lantern_fish = parse_lantern_fish_histogram(input);
 
@@ -885,7 +908,7 @@ mod test {
 
     #[test]
     fn test_6_2_sample() {
-        let input = to_lines(Raw("3,4,3,1,2"));
+        let input = to_vec(Raw("3,4,3,1,2"), Comma);
 
         let lantern_fish = parse_lantern_fish_histogram(input);
 
@@ -896,7 +919,7 @@ mod test {
 
     #[test]
     fn test_6_2() {
-        let input = to_lines(Path("input/2021/6.txt"));
+        let input = to_vec(Path("input/2021/6.txt"), Comma);
 
         let lantern_fish = parse_lantern_fish_histogram(input);
 
@@ -907,36 +930,21 @@ mod test {
 
     #[test]
     fn test_7_1_sample() {
-        let input = to_lines(Raw("16,1,2,0,4,2,7,1,2,14")).next().unwrap();
-
-        let crabs = input
-            .split(",")
-            .filter_map(|s| s.parse::<i32>().ok())
-            .collect_vec();
+        let crabs = to_vec(Raw("16,1,2,0,4,2,7,1,2,14"), Comma);
 
         assert_eq!(find_cheapest_horizontal_position(crabs, identity), 37);
     }
 
     #[test]
     fn test_7_1() {
-        let input = to_lines(Path("input/2021/7.txt")).next().unwrap();
-
-        let crabs = input
-            .split(",")
-            .filter_map(|s| s.parse::<i32>().ok())
-            .collect_vec();
+        let crabs = to_vec(Path("input/2021/7.txt"), Comma);
 
         assert_eq!(find_cheapest_horizontal_position(crabs, identity), 348_996);
     }
 
     #[test]
     fn test_7_2_sample() {
-        let input = to_lines(Raw("16,1,2,0,4,2,7,1,2,14")).next().unwrap();
-
-        let crabs = input
-            .split(",")
-            .filter_map(|s| s.parse::<i32>().ok())
-            .collect_vec();
+        let crabs = to_vec(Raw("16,1,2,0,4,2,7,1,2,14"), Comma);
 
         assert_eq!(
             find_cheapest_horizontal_position(crabs, triangle_number),
@@ -946,12 +954,7 @@ mod test {
 
     #[test]
     fn test_7_2() {
-        let input = to_lines(Path("input/2021/7.txt")).next().unwrap();
-
-        let crabs = input
-            .split(",")
-            .filter_map(|s| s.parse::<i32>().ok())
-            .collect_vec();
+        let crabs = to_vec(Path("input/2021/7.txt"), Comma);
 
         assert_eq!(
             find_cheapest_horizontal_position(crabs, triangle_number),
