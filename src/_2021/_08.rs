@@ -1,6 +1,6 @@
 use itertools::Itertools;
 
-pub fn count_1478(input: Box<dyn Iterator<Item = String>>) -> i32 {
+pub fn count_1478(input: impl Iterator<Item = String>) -> i32 {
     input
         .map(|line| line.split_once("|").unwrap().1.trim().to_owned())
         .map(|output| {
