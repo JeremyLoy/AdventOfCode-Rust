@@ -98,7 +98,7 @@ mod tests {
     use crate::input_parsing::{to_lines, Input::*};
 
     #[test]
-    fn test_3_1_sample() {
+    fn test_1_sample() {
         let input: Vec<String> = to_lines(Raw("
         00100
         11110
@@ -125,7 +125,7 @@ mod tests {
     }
 
     #[test]
-    fn test_3_1() {
+    fn test_1() {
         let input: Vec<String> = to_lines(Path("input/2021/3.txt")).collect();
 
         let gamma_rate = find_all_most_common_bits(&input);
@@ -138,7 +138,7 @@ mod tests {
     }
 
     #[test]
-    fn test_3_2_sample() {
+    fn test_2_sample() {
         let input: Vec<String> = to_lines(Raw("
         00100
         11110
@@ -164,7 +164,7 @@ mod tests {
     }
 
     #[test]
-    fn test_3_2() {
+    fn test_2() {
         let input: Vec<String> = to_lines(Path("input/2021/3.txt")).collect();
 
         let oxygen_generator_rating = find_component_rating(input.clone(), BitCriteria::Oxygen);

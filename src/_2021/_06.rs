@@ -25,7 +25,7 @@ mod tests {
     use super::*;
     use crate::input_parsing::{to_vec, Input::*, Separator::*};
     #[test]
-    fn test_6_1_sample() {
+    fn test_1_sample() {
         let input = to_vec(Raw("3,4,3,1,2"), Comma);
 
         let lantern_fish = parse_lantern_fish_histogram(input);
@@ -36,7 +36,7 @@ mod tests {
     }
 
     #[test]
-    fn test_6_1() {
+    fn test_1() {
         let input = to_vec(Path("input/2021/6.txt"), Comma);
 
         let lantern_fish = parse_lantern_fish_histogram(input);
@@ -47,7 +47,7 @@ mod tests {
     }
 
     #[test]
-    fn test_6_2_sample() {
+    fn test_2_sample() {
         let input = to_vec(Raw("3,4,3,1,2"), Comma);
 
         let lantern_fish = parse_lantern_fish_histogram(input);
@@ -58,7 +58,7 @@ mod tests {
     }
 
     #[test]
-    fn test_6_2() {
+    fn test_2() {
         let input = to_vec(Path("input/2021/6.txt"), Comma);
 
         let lantern_fish = parse_lantern_fish_histogram(input);

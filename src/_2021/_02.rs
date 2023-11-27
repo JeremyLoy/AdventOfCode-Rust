@@ -111,7 +111,7 @@ mod tests {
     use crate::input_parsing::Input::{Path, Raw};
 
     #[test]
-    fn test_2_1_sample() {
+    fn test_1_sample() {
         let input = to_lines(Raw("
     forward 5
     down 5
@@ -128,7 +128,7 @@ mod tests {
     }
 
     #[test]
-    fn test_2_1() {
+    fn test_1() {
         let input = to_lines(Path("input/2021/2.txt"));
         let commands = Command::parse_batch(input);
 
@@ -138,7 +138,7 @@ mod tests {
     }
 
     #[test]
-    fn test_2_2_sample() {
+    fn test_2_sample() {
         let input = to_lines(Raw("
     forward 5
     down 5
@@ -155,7 +155,7 @@ mod tests {
     }
 
     #[test]
-    fn test_2_2() {
+    fn test_2() {
         let input = to_lines(Path("input/2021/2.txt"));
         let commands = Command::parse_batch(input);
 

@@ -38,21 +38,21 @@ mod tests {
     use crate::input_parsing::{to_vec, Input::*, Separator::*};
     use std::convert::identity;
     #[test]
-    fn test_7_1_sample() {
+    fn test_1_sample() {
         let crabs = to_vec(Raw("16,1,2,0,4,2,7,1,2,14"), Comma);
 
         assert_eq!(find_cheapest_horizontal_position(crabs, identity), 37);
     }
 
     #[test]
-    fn test_7_1() {
+    fn test_1() {
         let crabs = to_vec(Path("input/2021/7.txt"), Comma);
 
         assert_eq!(find_cheapest_horizontal_position(crabs, identity), 348_996);
     }
 
     #[test]
-    fn test_7_2_sample() {
+    fn test_2_sample() {
         let crabs = to_vec(Raw("16,1,2,0,4,2,7,1,2,14"), Comma);
 
         assert_eq!(
@@ -62,7 +62,7 @@ mod tests {
     }
 
     #[test]
-    fn test_7_2() {
+    fn test_2() {
         let crabs = to_vec(Path("input/2021/7.txt"), Comma);
 
         assert_eq!(

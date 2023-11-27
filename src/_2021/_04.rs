@@ -120,7 +120,7 @@ mod tests {
     use super::*;
     use crate::input_parsing::{to_lines, Input::*};
     #[test]
-    fn test_4_1_sample() {
+    fn test_1_sample() {
         let input = to_lines(Raw("
         7,4,9,5,11,17,23,2,0,14,21,24,10,16,13,6,15,25,12,22,18,20,8,19,3,26,1
 
@@ -151,7 +151,7 @@ mod tests {
     }
 
     #[test]
-    fn test_4_1() {
+    fn test_1() {
         let input = to_lines(Path("input/2021/4.txt"));
 
         let (calls, boards) = parse_calls_and_bingo_boards(input);
@@ -162,7 +162,7 @@ mod tests {
     }
 
     #[test]
-    fn test_4_2_sample() {
+    fn test_2_sample() {
         let input = to_lines(Raw("
         7,4,9,5,11,17,23,2,0,14,21,24,10,16,13,6,15,25,12,22,18,20,8,19,3,26,1
 
@@ -193,7 +193,7 @@ mod tests {
     }
 
     #[test]
-    fn test_4_2() {
+    fn test_2() {
         let input = to_lines(Path("input/2021/4.txt"));
 
         let (calls, boards) = parse_calls_and_bingo_boards(input);

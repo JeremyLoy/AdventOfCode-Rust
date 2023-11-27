@@ -43,7 +43,7 @@ mod tests {
     use crate::input_parsing::Separator::Newline;
 
     #[test]
-    fn test_1_1_sample() {
+    fn test_1_sample() {
         let input = "
         199
         200
@@ -64,7 +64,7 @@ mod tests {
     }
 
     #[test]
-    fn test_1_1() {
+    fn test_1() {
         let numbers = to_vec(Path("input/2021/1.txt"), Newline);
 
         let count = count_of_increasing_pairs_in_windowed_sums(&numbers, 1);
@@ -73,7 +73,7 @@ mod tests {
     }
 
     #[test]
-    fn test_1_2_sample() {
+    fn test_2_sample() {
         let input = "
         199
         200
@@ -94,7 +94,7 @@ mod tests {
     }
 
     #[test]
-    fn test_1_2() {
+    fn test_2() {
         let numbers: Vec<i32> = to_vec(Path("input/2021/1.txt"), Newline);
 
         let count = count_of_increasing_pairs_in_windowed_sums(&numbers, 3);

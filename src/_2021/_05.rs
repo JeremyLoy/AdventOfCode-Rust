@@ -78,7 +78,7 @@ mod tests {
     use super::*;
     use crate::input_parsing::{to_lines, Input::*};
     #[test]
-    fn test_5_1_sample() {
+    fn test_1_sample() {
         let input = to_lines(Raw("
         0,9 -> 5,9
         8,0 -> 0,8
@@ -98,7 +98,7 @@ mod tests {
     }
 
     #[test]
-    fn test_5_1() {
+    fn test_1() {
         let input = to_lines(Path("input/2021/5.txt"));
 
         let grid = plot_points(Point::parse_batch(input), Diagonals::Exclude);
@@ -107,7 +107,7 @@ mod tests {
     }
 
     #[test]
-    fn test_5_2_sample() {
+    fn test_2_sample() {
         let input = to_lines(Raw("
         0,9 -> 5,9
         8,0 -> 0,8
@@ -127,7 +127,7 @@ mod tests {
     }
 
     #[test]
-    fn test_5_2() {
+    fn test_2() {
         let input = to_lines(Path("input/2021/5.txt"));
 
         let grid = plot_points(Point::parse_batch(input), Diagonals::Include);

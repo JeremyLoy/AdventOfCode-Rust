@@ -154,7 +154,7 @@ mod tests {
     }
 
     #[test]
-    fn test_8_1_sample() {
+    fn test_1_sample() {
         let input = Raw("
         be cfbegad cbdgef fgaecd cgeb fdcge agebfd fecdb fabcd edb | fdgacbe cefdb cefbgd gcbe
         edbfga begcd cbg gc gcadebf fbgde acbgfd abcde gfcbed gfec | fcgedb cgb dgebacf gc
@@ -174,14 +174,14 @@ mod tests {
     }
 
     #[test]
-    fn test_8_1() {
+    fn test_1() {
         let input = to_lines(Path("input/2021/8.txt"));
 
         assert_eq!(count_1478(input), 530);
     }
 
     #[test]
-    fn test_8_2_sample() {
+    fn test_2_sample() {
         let input = to_lines(Raw("
         be cfbegad cbdgef fgaecd cgeb fdcge agebfd fecdb fabcd edb | fdgacbe cefdb cefbgd gcbe
         edbfga begcd cbg gc gcadebf fbgde acbgfd abcde gfcbed gfec | fcgedb cgb dgebacf gc
@@ -199,7 +199,7 @@ mod tests {
     }
 
     #[test]
-    fn test_8_2() {
+    fn test_2() {
         let input = to_lines(Path("input/2021/8.txt"));
 
         assert_eq!(input.map(|l| determine_output(&l)).sum::<i32>(), 1_051_087);
