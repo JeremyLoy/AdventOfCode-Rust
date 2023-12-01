@@ -1,42 +1,29 @@
-use once_cell::sync::Lazy;
-use regex::Regex;
-
 pub enum ParseMode {
     Literals,
     LettersAndLiterals,
 }
 
-static RE_ONE: Lazy<Regex> = Lazy::new(|| Regex::new("^(1|one)").unwrap());
-static RE_TWO: Lazy<Regex> = Lazy::new(|| Regex::new("^(2|two)").unwrap());
-static RE_THREE: Lazy<Regex> = Lazy::new(|| Regex::new("^(3|three)").unwrap());
-static RE_FOUR: Lazy<Regex> = Lazy::new(|| Regex::new("^(4|four)").unwrap());
-static RE_FIVE: Lazy<Regex> = Lazy::new(|| Regex::new("^(5|five)").unwrap());
-static RE_SIX: Lazy<Regex> = Lazy::new(|| Regex::new("^(6|six)").unwrap());
-static RE_SEVEN: Lazy<Regex> = Lazy::new(|| Regex::new("^(7|seven)").unwrap());
-static RE_EIGHT: Lazy<Regex> = Lazy::new(|| Regex::new("^(8|eight)").unwrap());
-static RE_NINE: Lazy<Regex> = Lazy::new(|| Regex::new("^(9|nine)").unwrap());
-
 pub fn parse_letter_and_literal_calibration_value(str: &str) -> i32 {
     let mut digits: Vec<i32> = Vec::new();
     for i in 0..str.len() {
         let substring = &str[i..];
-        if RE_ONE.is_match(substring) {
+        if substring.starts_with("1") || substring.starts_with("one") {
             digits.push(1)
-        } else if RE_TWO.is_match(substring) {
+        } else if substring.starts_with("2") || substring.starts_with("two") {
             digits.push(2)
-        } else if RE_THREE.is_match(substring) {
+        } else if substring.starts_with("3") || substring.starts_with("three") {
             digits.push(3)
-        } else if RE_FOUR.is_match(substring) {
+        } else if substring.starts_with("4") || substring.starts_with("four") {
             digits.push(4)
-        } else if RE_FIVE.is_match(substring) {
+        } else if substring.starts_with("5") || substring.starts_with("five") {
             digits.push(5)
-        } else if RE_SIX.is_match(substring) {
+        } else if substring.starts_with("6") || substring.starts_with("six") {
             digits.push(6)
-        } else if RE_SEVEN.is_match(substring) {
+        } else if substring.starts_with("7") || substring.starts_with("seven") {
             digits.push(7)
-        } else if RE_EIGHT.is_match(substring) {
+        } else if substring.starts_with("8") || substring.starts_with("eight") {
             digits.push(8)
-        } else if RE_NINE.is_match(substring) {
+        } else if substring.starts_with("9") || substring.starts_with("nine") {
             digits.push(9)
         }
     }
