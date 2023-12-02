@@ -18,6 +18,7 @@ fn main() {
     let file_content = "\
 #[cfg(test)]
 mod tests {
+    use super::*;
 
     #[test]
     fn test_1_sample() {

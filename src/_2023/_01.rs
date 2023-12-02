@@ -3,7 +3,7 @@ pub enum ParseMode {
     LettersAndLiterals,
 }
 
-pub fn parse_letter_and_literal_calibration_value(str: &str) -> i32 {
+pub fn parse_letter_and_literal_calibration_value(str: &str) -> Option<i32> {
     let mut digits: Vec<i32> = Vec::new();
     for i in 0..str.len() {
         let substring = &str[i..];
@@ -27,21 +27,21 @@ pub fn parse_letter_and_literal_calibration_value(str: &str) -> i32 {
             digits.push(9)
         }
     }
-    (digits.first().unwrap() * 10) + digits.last().unwrap()
+    Some((digits.first()? * 10) + digits.last()?)
 }
 
-pub fn parse_literal_calibration_value(str: &str) -> i32 {
+pub fn parse_literal_calibration_value(str: &str) -> Option<i32> {
     let digits: Vec<i32> = str
         .chars()
         .filter_map(|c| c.to_string().parse::<i32>().ok())
         .collect();
-    (digits.first().unwrap() * 10) + digits.last().unwrap()
+    Some((digits.first()? * 10) + digits.last()?)
 }
 
 pub fn parse_batch_calibration_values(
     lines: impl Iterator<Item = String>,
     parse_mode: ParseMode,
-) -> Vec<i32> {
+) -> Option<Vec<i32>> {
     match parse_mode {
         ParseMode::Literals => lines.map(|l| parse_literal_calibration_value(&l)).collect(),
         ParseMode::LettersAndLiterals => lines
@@ -52,10 +52,10 @@ pub fn parse_batch_calibration_values(
 
 #[cfg(test)]
 mod tests {
+    use super::ParseMode::*;
+    use super::*;
     use crate::input_parsing::to_lines;
     use crate::input_parsing::Input::{Path, Raw};
-    use crate::_2023::_01::ParseMode::{LettersAndLiterals, Literals};
-    use crate::_2023::_01::*;
 
     #[test]
     fn test_1_sample() {
@@ -64,14 +64,14 @@ mod tests {
 pqr3stu8vwx
 a1b2c3d4e5f
 treb7uchet");
-        let calibration_values = parse_batch_calibration_values(to_lines(input), Literals);
+        let calibration_values = parse_batch_calibration_values(to_lines(input), Literals).unwrap();
         assert_eq!(calibration_values.iter().sum::<i32>(), 142)
     }
 
     #[test]
     fn test_1() {
         let input = Path("input/2023/1.txt");
-        let calibration_values = parse_batch_calibration_values(to_lines(input), Literals);
+        let calibration_values = parse_batch_calibration_values(to_lines(input), Literals).unwrap();
         assert_eq!(calibration_values.iter().sum::<i32>(), 54_601)
     }
 
@@ -86,7 +86,7 @@ xtwone3four
 zoneight234
 7pqrstsixteen");
         let calibration_values =
-            parse_batch_calibration_values(to_lines(input), LettersAndLiterals);
+            parse_batch_calibration_values(to_lines(input), LettersAndLiterals).unwrap();
         assert_eq!(calibration_values.iter().sum::<i32>(), 281)
     }
 
@@ -94,7 +94,7 @@ zoneight234
     fn test_2() {
         let input = Path("input/2023/1.txt");
         let calibration_values =
-            parse_batch_calibration_values(to_lines(input), LettersAndLiterals);
+            parse_batch_calibration_values(to_lines(input), LettersAndLiterals).unwrap();
         assert_eq!(calibration_values.iter().sum::<i32>(), 54_078)
     }
 }
