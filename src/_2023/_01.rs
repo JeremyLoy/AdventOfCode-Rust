@@ -70,7 +70,7 @@ treb7uchet");
 
     #[test]
     fn test_1() {
-        let input = Path("input/2023/1.txt");
+        let input = Path("input/2023/01.txt");
         let calibration_values = parse_batch_calibration_values(to_lines(input), Literals).unwrap();
         assert_eq!(calibration_values.iter().sum::<i32>(), 54_601)
     }
@@ -92,7 +92,7 @@ zoneight234
 
     #[test]
     fn test_2() {
-        let input = Path("input/2023/1.txt");
+        let input = Path("input/2023/01.txt");
         let calibration_values =
             parse_batch_calibration_values(to_lines(input), LettersAndLiterals).unwrap();
         assert_eq!(calibration_values.iter().sum::<i32>(), 54_078)
