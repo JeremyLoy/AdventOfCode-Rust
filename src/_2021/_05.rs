@@ -99,7 +99,7 @@ mod tests {
 
     #[test]
     fn test_1() {
-        let input = to_lines(Path("input/2021/5.txt"));
+        let input = to_lines(Path("input/2021/05.txt"));
 
         let grid = plot_points(Point::parse_batch(input), Diagonals::Exclude);
 
@@ -128,7 +128,7 @@ mod tests {
 
     #[test]
     fn test_2() {
-        let input = to_lines(Path("input/2021/5.txt"));
+        let input = to_lines(Path("input/2021/05.txt"));
 
         let grid = plot_points(Point::parse_batch(input), Diagonals::Include);
 

@@ -37,7 +37,7 @@ mod tests {
 
     #[test]
     fn test_1() {
-        let input = to_vec(Path("input/2021/6.txt"), Comma);
+        let input = to_vec(Path("input/2021/06.txt"), Comma);
 
         let lantern_fish = parse_lantern_fish_histogram(input);
 
@@ -59,7 +59,7 @@ mod tests {
 
     #[test]
     fn test_2() {
-        let input = to_vec(Path("input/2021/6.txt"), Comma);
+        let input = to_vec(Path("input/2021/06.txt"), Comma);
 
         let lantern_fish = parse_lantern_fish_histogram(input);
 

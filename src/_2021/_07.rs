@@ -46,7 +46,7 @@ mod tests {
 
     #[test]
     fn test_1() {
-        let crabs = to_vec(Path("input/2021/7.txt"), Comma);
+        let crabs = to_vec(Path("input/2021/07.txt"), Comma);
 
         assert_eq!(find_cheapest_horizontal_position(crabs, identity), 348_996);
     }
@@ -63,7 +63,7 @@ mod tests {
 
     #[test]
     fn test_2() {
-        let crabs = to_vec(Path("input/2021/7.txt"), Comma);
+        let crabs = to_vec(Path("input/2021/07.txt"), Comma);
 
         assert_eq!(
             find_cheapest_horizontal_position(crabs, triangle_number),

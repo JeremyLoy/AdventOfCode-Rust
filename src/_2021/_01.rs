@@ -65,7 +65,7 @@ mod tests {
 
     #[test]
     fn test_1() {
-        let numbers = to_vec(Path("input/2021/1.txt"), Newline);
+        let numbers = to_vec(Path("input/2021/01.txt"), Newline);
 
         let count = count_of_increasing_pairs_in_windowed_sums(&numbers, 1);
 
@@ -95,7 +95,7 @@ mod tests {
 
     #[test]
     fn test_2() {
-        let numbers: Vec<i32> = to_vec(Path("input/2021/1.txt"), Newline);
+        let numbers: Vec<i32> = to_vec(Path("input/2021/01.txt"), Newline);
 
         let count = count_of_increasing_pairs_in_windowed_sums(&numbers, 3);
 

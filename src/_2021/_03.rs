@@ -126,7 +126,7 @@ mod tests {
 
     #[test]
     fn test_1() {
-        let input: Vec<String> = to_lines(Path("input/2021/3.txt")).collect();
+        let input: Vec<String> = to_lines(Path("input/2021/03.txt")).collect();
 
         let gamma_rate = find_all_most_common_bits(&input);
         let epsilon_rate = flip_binary_str_bits(&gamma_rate);
@@ -165,7 +165,7 @@ mod tests {
 
     #[test]
     fn test_2() {
-        let input: Vec<String> = to_lines(Path("input/2021/3.txt")).collect();
+        let input: Vec<String> = to_lines(Path("input/2021/03.txt")).collect();
 
         let oxygen_generator_rating = find_component_rating(input.clone(), BitCriteria::Oxygen);
         let co2_scrubber_rating = find_component_rating(input, BitCriteria::CO2);

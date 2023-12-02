@@ -175,7 +175,7 @@ mod tests {
 
     #[test]
     fn test_1() {
-        let input = to_lines(Path("input/2021/8.txt"));
+        let input = to_lines(Path("input/2021/08.txt"));
 
         assert_eq!(count_1478(input), 530);
     }
@@ -200,7 +200,7 @@ mod tests {
 
     #[test]
     fn test_2() {
-        let input = to_lines(Path("input/2021/8.txt"));
+        let input = to_lines(Path("input/2021/08.txt"));
 
         assert_eq!(input.map(|l| determine_output(&l)).sum::<i32>(), 1_051_087);
     }

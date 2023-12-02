@@ -129,7 +129,7 @@ mod tests {
 
     #[test]
     fn test_1() {
-        let input = to_lines(Path("input/2021/2.txt"));
+        let input = to_lines(Path("input/2021/02.txt"));
         let commands = Command::parse_batch(input);
 
         let result = calculate_distance(commands);
@@ -156,7 +156,7 @@ mod tests {
 
     #[test]
     fn test_2() {
-        let input = to_lines(Path("input/2021/2.txt"));
+        let input = to_lines(Path("input/2021/02.txt"));
         let commands = Command::parse_batch(input);
 
         let result = calculate_aim_and_distance(commands);

@@ -63,17 +63,20 @@ pub fn parse_batch_games(input: impl Iterator<Item = String>) -> Option<Vec<Game
     input.map(|s| parse_game(&s)).collect()
 }
 
-pub fn filter_where_impossible(games: Vec<Game>, max: Set) -> Vec<Game> {
+pub fn is_impossible(game: &Game, max: &Set) -> bool {
+    game.sets.iter().all(|s| {
+        s.blue_count <= max.blue_count
+            && s.green_count <= max.green_count
+            && s.red_count <= max.red_count
+    })
+}
+
+pub fn sum_impossible_game_ids(games: Vec<Game>, max: Set) -> i32 {
     games
-        .into_iter()
-        .filter(|g| {
-            g.sets.iter().all(|s| {
-                s.blue_count <= max.blue_count
-                    && s.green_count <= max.green_count
-                    && s.red_count <= max.red_count
-            })
-        })
-        .collect()
+        .iter()
+        .filter(|g| is_impossible(g, &max))
+        .map(|g| g.id)
+        .sum::<i32>()
 }
 
 pub fn calculate_power(game: &Game) -> i32 {
@@ -160,9 +163,8 @@ Game 5: 6 red, 1 blue, 3 green; 2 blue, 1 red, 2 green\
         };
 
         let games = parse_batch_games(input).unwrap();
-        let games = filter_where_impossible(games, max);
 
-        assert_eq!(games.iter().map(|g| g.id).sum::<i32>(), 8);
+        assert_eq!(sum_impossible_game_ids(games, max), 8);
     }
 
     #[test]
@@ -175,9 +177,8 @@ Game 5: 6 red, 1 blue, 3 green; 2 blue, 1 red, 2 green\
         };
 
         let games = parse_batch_games(input).unwrap();
-        let games = filter_where_impossible(games, max);
 
-        assert_eq!(games.iter().map(|g| g.id).sum::<i32>(), 2_239);
+        assert_eq!(sum_impossible_game_ids(games, max), 2_239);
     }
 
     #[test]

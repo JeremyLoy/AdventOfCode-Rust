@@ -152,7 +152,7 @@ mod tests {
 
     #[test]
     fn test_1() {
-        let input = to_lines(Path("input/2021/4.txt"));
+        let input = to_lines(Path("input/2021/04.txt"));
 
         let (calls, boards) = parse_calls_and_bingo_boards(input);
 
@@ -194,7 +194,7 @@ mod tests {
 
     #[test]
     fn test_2() {
-        let input = to_lines(Path("input/2021/4.txt"));
+        let input = to_lines(Path("input/2021/04.txt"));
 
         let (calls, boards) = parse_calls_and_bingo_boards(input);
 
