@@ -1,5 +1,5 @@
 use std::fs;
-use std::fs::OpenOptions;
+use std::fs::{File, OpenOptions};
 use std::io::prelude::*;
 
 use clap::Parser;
@@ -15,49 +15,70 @@ struct Opts {
 fn main() {
     let Opts { start, end, year } = Opts::parse();
 
-    let file_content = "\
-#[cfg(test)]
-mod tests {
-    use super::*;
+    let src_directory = format!("src/_{}", year);
+    let input_directory = format!("input/{}", year);
 
-    #[test]
-    fn test_1_sample() {
-        assert_eq!(2, 1 + 1);
-    }
-
-    #[test]
-    fn test_1() {
-        assert_eq!(2, 1 + 1);
-    }
-
-    #[test]
-    fn test_2_sample() {
-        assert_eq!(2, 1 + 1);
-    }
-
-    #[test]
-    fn test_2() {
-        assert_eq!(2, 1 + 1);
-    }
-}";
-
-    let directory = format!("src/_{}", year);
-
-    fs::create_dir_all(&directory).expect("Failed to create directory");
+    fs::create_dir_all(&src_directory).expect("Failed to create src directory");
+    fs::create_dir_all(&input_directory).expect("Failed to create input directory");
 
     let mut mod_file = OpenOptions::new()
         .write(true)
         .append(true)
-        .open(format!("{}/mod.rs", &directory))
-        .or_else(|_| fs::File::create(format!("{}/mod.rs", &directory)))
+        .open(format!("{}/mod.rs", &src_directory))
+        .or_else(|_| fs::File::create(format!("{}/mod.rs", &src_directory)))
         .expect("Unable to open file");
 
     for i in start..=end {
-        let formatted_index = format!("{:02}", i);
-        let file_name = format!("{}/_{}.rs", &directory, &formatted_index);
+        let day = format!("{:02}", i);
+        let file_name = format!("{}/_{}.rs", &src_directory, &day);
 
-        fs::write(&file_name, &file_content).expect("Unable to write file");
+        File::create(format!("{}/{}.txt", &input_directory, &day))
+            .expect("unable to create input file");
 
-        writeln!(mod_file, "pub mod _{};", &formatted_index).expect("Unable to write to file");
+        fs::write(
+            &file_name,
+            format!(
+                r##"
+#[cfg(test)]
+mod tests {{
+    use super::*;
+    use crate::input_parsing::Input::{{Path, Raw}};
+
+    #[test]
+    fn test_1_sample() {{
+        let input = Raw("\
+");
+
+        assert_eq!(2, 1 + 1);
+    }}
+
+    #[test]
+    fn test_1() {{
+        let input = Path("input/{}/{}.txt");
+
+        assert_eq!(2, 1 + 1);
+    }}
+
+    #[test]
+    fn test_2_sample() {{
+        let input = Raw("\
+");
+
+        assert_eq!(2, 1 + 1);
+    }}
+
+    #[test]
+    fn test_2() {{
+        let input = Path("input/{}/{}.txt");
+
+        assert_eq!(2, 1 + 1);
+    }}
+}}"##,
+                year, day, year, day
+            ),
+        )
+        .expect("Unable to write src file");
+
+        writeln!(mod_file, "pub mod _{};", &day).expect("Unable to write to mod line");
     }
 }
