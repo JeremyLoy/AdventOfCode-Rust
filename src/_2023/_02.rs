@@ -1,14 +1,67 @@
 use crate::_2023::_02::Color::{Blue, Green, Red};
 use std::cmp;
+use std::error::Error;
+use std::str::FromStr;
 
 pub struct Set {
     blue_count: i32,
     green_count: i32,
     red_count: i32,
 }
+
+impl FromStr for Set {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(s.split(",")
+            .filter_map(|cube| {
+                let cube = cube.trim();
+                let (count, color) = cube.split_once(" ")?;
+                let count = count.parse::<i32>().ok()?;
+                match color {
+                    "blue" => Some(Blue(count)),
+                    "green" => Some(Green(count)),
+                    "red" => Some(Red(count)),
+                    _ => None,
+                }
+            })
+            .fold(
+                Set {
+                    blue_count: 0,
+                    green_count: 0,
+                    red_count: 0,
+                },
+                |mut set, color| {
+                    match color {
+                        Blue(count) => set.blue_count += count,
+                        Green(count) => set.green_count += count,
+                        Red(count) => set.red_count += count,
+                    }
+                    set
+                },
+            ))
+    }
+}
+
 pub struct Game {
     id: i32,
     sets: Vec<Set>,
+}
+
+impl FromStr for Game {
+    type Err = Box<dyn Error>;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let (id, sets) = s.split_once(":").ok_or("")?;
+        let id = id.split_whitespace().last().ok_or("")?.parse::<i32>()?;
+
+        let sets = sets
+            .split(";")
+            .filter_map(|set| set.parse::<Set>().ok())
+            .collect();
+
+        Ok(Game { id, sets })
+    }
 }
 
 pub enum Color {
@@ -17,50 +70,8 @@ pub enum Color {
     Red(i32),
 }
 
-pub fn parse_game(s: &str) -> Option<Game> {
-    let (id, sets) = s.split_once(":")?;
-    let id = id.split_whitespace();
-    let id = id.last()?;
-    let id = id.parse::<i32>().ok()?;
-
-    let sets = sets
-        .split(";")
-        .map(|set| {
-            set.split(",")
-                .filter_map(|cube| {
-                    let cube = cube.trim();
-                    let (count, color) = cube.split_once(" ")?;
-                    let count = count.parse::<i32>().ok()?;
-                    match color {
-                        "blue" => Some(Blue(count)),
-                        "green" => Some(Green(count)),
-                        "red" => Some(Red(count)),
-                        _ => None,
-                    }
-                })
-                .fold(
-                    Set {
-                        blue_count: 0,
-                        green_count: 0,
-                        red_count: 0,
-                    },
-                    |mut set, color| {
-                        match color {
-                            Blue(count) => set.blue_count += count,
-                            Green(count) => set.green_count += count,
-                            Red(count) => set.red_count += count,
-                        }
-                        set
-                    },
-                )
-        })
-        .collect();
-
-    Some(Game { id, sets })
-}
-
 pub fn parse_batch_games(input: impl Iterator<Item = String>) -> Option<Vec<Game>> {
-    input.map(|s| parse_game(&s)).collect()
+    input.map(|s| s.parse::<Game>().ok()).collect()
 }
 
 pub fn is_impossible(game: &Game, max: &Set) -> bool {
@@ -76,7 +87,7 @@ pub fn sum_impossible_game_ids(games: Vec<Game>, max: Set) -> i32 {
         .iter()
         .filter(|g| is_impossible(g, &max))
         .map(|g| g.id)
-        .sum::<i32>()
+        .sum()
 }
 
 pub fn calculate_power(game: &Game) -> i32 {
@@ -111,38 +122,41 @@ mod tests {
         assert_eq!(
             48,
             calculate_power(
-                &parse_game("Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green").unwrap()
+                &"Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green"
+                    .parse::<Game>()
+                    .unwrap()
             )
         );
         assert_eq!(
             12,
             calculate_power(
-                &parse_game("Game 2: 1 blue, 2 green; 3 green, 4 blue, 1 red; 1 green, 1 blue")
+                &"Game 2: 1 blue, 2 green; 3 green, 4 blue, 1 red; 1 green, 1 blue"
+                    .parse::<Game>()
                     .unwrap()
             )
         );
         assert_eq!(
             1560,
             calculate_power(
-                &parse_game(
-                    "Game 3: 8 green, 6 blue, 20 red; 5 blue, 4 red, 13 green; 5 green, 1 red"
-                )
-                .unwrap()
+                &"Game 3: 8 green, 6 blue, 20 red; 5 blue, 4 red, 13 green; 5 green, 1 red"
+                    .parse::<Game>()
+                    .unwrap()
             )
         );
         assert_eq!(
             630,
             calculate_power(
-                &parse_game(
-                    "Game 4: 1 green, 3 red, 6 blue; 3 green, 6 red; 3 green, 15 blue, 14 red"
-                )
-                .unwrap()
+                &"Game 4: 1 green, 3 red, 6 blue; 3 green, 6 red; 3 green, 15 blue, 14 red"
+                    .parse::<Game>()
+                    .unwrap()
             )
         );
         assert_eq!(
             36,
             calculate_power(
-                &parse_game("Game 5: 6 red, 1 blue, 3 green; 2 blue, 1 red, 2 green").unwrap()
+                &"Game 5: 6 red, 1 blue, 3 green; 2 blue, 1 red, 2 green"
+                    .parse::<Game>()
+                    .unwrap()
             )
         );
     }
