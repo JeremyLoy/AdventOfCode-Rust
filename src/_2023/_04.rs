@@ -2,15 +2,15 @@ use std::collections::HashSet;
 use std::error::Error;
 use std::str::FromStr;
 
-pub struct LotoCard {
+pub struct LottoCard {
     id: i32,
     winning_numbers: HashSet<i32>,
     owned_numbers: HashSet<i32>,
 }
 
-impl LotoCard {
-    pub fn parse_batch(iterator: impl Iterator<Item = String>) -> Vec<LotoCard> {
-        iterator.flat_map(|s| s.parse::<LotoCard>().ok()).collect()
+impl LottoCard {
+    pub fn parse_batch(iterator: impl Iterator<Item = String>) -> Vec<LottoCard> {
+        iterator.flat_map(|s| s.parse::<LottoCard>().ok()).collect()
     }
     pub fn matching_cards(&self) -> i32 {
         self.winning_numbers
@@ -27,7 +27,7 @@ impl LotoCard {
     }
 }
 
-pub fn total_cards(cards: Vec<LotoCard>) -> i32 {
+pub fn total_cards(cards: Vec<LottoCard>) -> i32 {
     // adding 1 here, and subtracting 1 from the sum to avoid having to adjust card ID and index access since arrays are 0 indexed
     let mut extra_multiplier: Vec<i32> = vec![1; cards.len() + 1];
 
@@ -44,7 +44,7 @@ pub fn total_cards(cards: Vec<LotoCard>) -> i32 {
     extra_multiplier.iter().sum::<i32>() - 1
 }
 
-impl FromStr for LotoCard {
+impl FromStr for LottoCard {
     type Err = Box<dyn Error>;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -62,7 +62,7 @@ impl FromStr for LotoCard {
             .flat_map(|i| i.trim().parse())
             .collect();
 
-        Ok(LotoCard {
+        Ok(LottoCard {
             id,
             winning_numbers,
             owned_numbers,
@@ -87,18 +87,18 @@ Card 5: 87 83 26 28 32 | 88 30 70 12 93 22 82 36
 Card 6: 31 18 13 56 72 | 74 77 10 23 35 67 36 11
 ");
 
-        let cards = LotoCard::parse_batch(to_lines(input));
+        let cards = LottoCard::parse_batch(to_lines(input));
 
-        assert_eq!(cards.iter().map(LotoCard::score).sum::<i32>(), 13);
+        assert_eq!(cards.iter().map(LottoCard::score).sum::<i32>(), 13);
     }
 
     #[test]
     fn test_1() {
         let input = Path("input/2023/04.txt");
 
-        let cards = LotoCard::parse_batch(to_lines(input));
+        let cards = LottoCard::parse_batch(to_lines(input));
 
-        assert_eq!(cards.iter().map(LotoCard::score).sum::<i32>(), 23_678);
+        assert_eq!(cards.iter().map(LottoCard::score).sum::<i32>(), 23_678);
     }
 
     #[test]
@@ -112,7 +112,7 @@ Card 5: 87 83 26 28 32 | 88 30 70 12 93 22 82 36
 Card 6: 31 18 13 56 72 | 74 77 10 23 35 67 36 11
 ");
 
-        let cards = LotoCard::parse_batch(to_lines(input));
+        let cards = LottoCard::parse_batch(to_lines(input));
 
         assert_eq!(total_cards(cards), 30);
     }
@@ -121,7 +121,7 @@ Card 6: 31 18 13 56 72 | 74 77 10 23 35 67 36 11
     fn test_2() {
         let input = Path("input/2023/04.txt");
 
-        let cards = LotoCard::parse_batch(to_lines(input));
+        let cards = LottoCard::parse_batch(to_lines(input));
 
         assert_eq!(total_cards(cards), 15_455_663);
     }
