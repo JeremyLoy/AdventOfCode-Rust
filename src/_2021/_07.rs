@@ -20,7 +20,7 @@
 pub fn triangle_number(n: i32) -> i32 {
     (n * (n + 1)) / 2
 }
-pub fn find_cheapest_horizontal_position(crabs: Vec<i32>, fuel_calculator: fn(i32) -> i32) -> i32 {
+pub fn find_cheapest_horizontal_position(crabs: &[i32], fuel_calculator: fn(i32) -> i32) -> i32 {
     let max_crab_pos = *crabs.iter().max().unwrap();
     (0..max_crab_pos)
         .map(|horiz_pos| {
@@ -41,14 +41,14 @@ mod tests {
     fn test_1_sample() {
         let crabs = to_vec(Raw("16,1,2,0,4,2,7,1,2,14"), Comma);
 
-        assert_eq!(find_cheapest_horizontal_position(crabs, identity), 37);
+        assert_eq!(find_cheapest_horizontal_position(&crabs, identity), 37);
     }
 
     #[test]
     fn test_1() {
         let crabs = to_vec(Path("input/2021/07.txt"), Comma);
 
-        assert_eq!(find_cheapest_horizontal_position(crabs, identity), 348_996);
+        assert_eq!(find_cheapest_horizontal_position(&crabs, identity), 348_996);
     }
 
     #[test]
@@ -56,7 +56,7 @@ mod tests {
         let crabs = to_vec(Raw("16,1,2,0,4,2,7,1,2,14"), Comma);
 
         assert_eq!(
-            find_cheapest_horizontal_position(crabs, triangle_number),
+            find_cheapest_horizontal_position(&crabs, triangle_number),
             168
         );
     }
@@ -66,7 +66,7 @@ mod tests {
         let crabs = to_vec(Path("input/2021/07.txt"), Comma);
 
         assert_eq!(
-            find_cheapest_horizontal_position(crabs, triangle_number),
+            find_cheapest_horizontal_position(&crabs, triangle_number),
             98_231_647
         );
     }

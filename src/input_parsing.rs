@@ -5,11 +5,13 @@ use std::fs::File;
 use std::io::{BufRead, BufReader, Read};
 use std::str::FromStr;
 
+#[derive(Copy, Clone)]
 pub enum Input<'a> {
     Path(&'a str),
     Raw(&'a str),
 }
 
+#[derive(Copy, Clone)]
 pub enum Separator {
     Comma,
     Newline,

@@ -29,7 +29,7 @@ pub fn find_all_most_common_bits(binary_report: &Vec<String>) -> String {
     ret
 }
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub enum BitCriteria {
     Oxygen,
     CO2,

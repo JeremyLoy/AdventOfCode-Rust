@@ -3,6 +3,7 @@ use std::cmp;
 use std::error::Error;
 use std::str::FromStr;
 
+#[derive(Copy, Clone)]
 pub struct Set {
     blue_count: i32,
     green_count: i32,
@@ -82,7 +83,7 @@ pub fn is_impossible(game: &Game, max: &Set) -> bool {
     })
 }
 
-pub fn sum_impossible_game_ids(games: Vec<Game>, max: Set) -> i32 {
+pub fn sum_impossible_game_ids(games: &[Game], max: Set) -> i32 {
     games
         .iter()
         .filter(|g| is_impossible(g, &max))
@@ -107,7 +108,7 @@ pub fn calculate_power(game: &Game) -> i32 {
     min.blue_count * min.green_count * min.red_count
 }
 
-pub fn sum_of_powers(games: Vec<Game>) -> i32 {
+pub fn sum_of_powers(games: &[Game]) -> i32 {
     games.iter().map(calculate_power).sum()
 }
 
@@ -178,7 +179,7 @@ Game 5: 6 red, 1 blue, 3 green; 2 blue, 1 red, 2 green\
 
         let games = parse_batch_games(input).unwrap();
 
-        assert_eq!(sum_impossible_game_ids(games, max), 8);
+        assert_eq!(sum_impossible_game_ids(&games, max), 8);
     }
 
     #[test]
@@ -192,7 +193,7 @@ Game 5: 6 red, 1 blue, 3 green; 2 blue, 1 red, 2 green\
 
         let games = parse_batch_games(input).unwrap();
 
-        assert_eq!(sum_impossible_game_ids(games, max), 2_239);
+        assert_eq!(sum_impossible_game_ids(&games, max), 2_239);
     }
 
     #[test]
@@ -206,7 +207,7 @@ Game 5: 6 red, 1 blue, 3 green; 2 blue, 1 red, 2 green\
 "));
 
         let games = parse_batch_games(input).unwrap();
-        let power_sum = sum_of_powers(games);
+        let power_sum = sum_of_powers(&games);
 
         assert_eq!(power_sum, 2_286);
     }
@@ -216,7 +217,7 @@ Game 5: 6 red, 1 blue, 3 green; 2 blue, 1 red, 2 green\
         let input = to_lines(Path("input/2023/02.txt"));
 
         let games = parse_batch_games(input).unwrap();
-        let power_sum = sum_of_powers(games);
+        let power_sum = sum_of_powers(&games);
 
         assert_eq!(power_sum, 83_435);
     }

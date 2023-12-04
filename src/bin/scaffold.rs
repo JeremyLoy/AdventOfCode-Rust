@@ -15,8 +15,8 @@ struct Opts {
 fn main() {
     let Opts { start, end, year } = Opts::parse();
 
-    let src_directory = format!("src/_{}", year);
-    let input_directory = format!("input/{}", year);
+    let src_directory = format!("src/_{year}");
+    let input_directory = format!("input/{year}");
 
     fs::create_dir_all(&src_directory).expect("Failed to create src directory");
     fs::create_dir_all(&input_directory).expect("Failed to create input directory");
@@ -29,8 +29,8 @@ fn main() {
         .expect("Unable to open file");
 
     for i in start..=end {
-        let day = format!("{:02}", i);
-        let file_name = format!("{}/_{}.rs", &src_directory, &day);
+        let day = format!("{i:02}");
+        let file_name = format!("{src_directory}/_{day}.rs");
 
         File::create(format!("{}/{}.txt", &input_directory, &day))
             .expect("unable to create input file");
@@ -54,7 +54,7 @@ mod tests {{
 
     #[test]
     fn test_1() {{
-        let input = Path("input/{}/{}.txt");
+        let input = Path("input/{year}/{day}.txt");
 
         assert_eq!(2, 1 + 1);
     }}
@@ -69,12 +69,11 @@ mod tests {{
 
     #[test]
     fn test_2() {{
-        let input = Path("input/{}/{}.txt");
+        let input = Path("input/{year}/{day}.txt");
 
         assert_eq!(2, 1 + 1);
     }}
 }}"##,
-                year, day, year, day
             ),
         )
         .expect("Unable to write src file");

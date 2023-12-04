@@ -1,4 +1,4 @@
-pub fn parse_lantern_fish_histogram(input: Vec<usize>) -> Vec<u128> {
+pub fn parse_lantern_fish_histogram(input: &[usize]) -> Vec<u128> {
     input.iter().fold(vec![0; 9], |mut acc, &i| {
         acc[i] += 1;
         acc
@@ -28,7 +28,7 @@ mod tests {
     fn test_1_sample() {
         let input = to_vec(Raw("3,4,3,1,2"), Comma);
 
-        let lantern_fish = parse_lantern_fish_histogram(input);
+        let lantern_fish = parse_lantern_fish_histogram(&input);
 
         let total = advance_lantern_fish_days(lantern_fish, 80);
 
@@ -39,7 +39,7 @@ mod tests {
     fn test_1() {
         let input = to_vec(Path("input/2021/06.txt"), Comma);
 
-        let lantern_fish = parse_lantern_fish_histogram(input);
+        let lantern_fish = parse_lantern_fish_histogram(&input);
 
         let total = advance_lantern_fish_days(lantern_fish, 80);
 
@@ -50,7 +50,7 @@ mod tests {
     fn test_2_sample() {
         let input = to_vec(Raw("3,4,3,1,2"), Comma);
 
-        let lantern_fish = parse_lantern_fish_histogram(input);
+        let lantern_fish = parse_lantern_fish_histogram(&input);
 
         let total = advance_lantern_fish_days(lantern_fish, 256);
 
@@ -61,7 +61,7 @@ mod tests {
     fn test_2() {
         let input = to_vec(Path("input/2021/06.txt"), Comma);
 
-        let lantern_fish = parse_lantern_fish_histogram(input);
+        let lantern_fish = parse_lantern_fish_histogram(&input);
 
         let total = advance_lantern_fish_days(lantern_fish, 256);
 

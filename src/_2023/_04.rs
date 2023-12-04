@@ -27,11 +27,11 @@ impl LottoCard {
     }
 }
 
-pub fn total_cards(cards: Vec<LottoCard>) -> i32 {
+pub fn total_cards(cards: &[LottoCard]) -> i32 {
     // adding 1 here, and subtracting 1 from the sum to avoid having to adjust card ID and index access since arrays are 0 indexed
     let mut extra_multiplier: Vec<i32> = vec![1; cards.len() + 1];
 
-    for card in &cards {
+    for card in cards {
         let matching_count = card.matching_cards();
         for _ in 0..extra_multiplier[card.id as usize] {
             let range = card.id + 1..=(card.id + matching_count);
@@ -114,7 +114,7 @@ Card 6: 31 18 13 56 72 | 74 77 10 23 35 67 36 11
 
         let cards = LottoCard::parse_batch(to_lines(input)).unwrap();
 
-        assert_eq!(total_cards(cards), 30);
+        assert_eq!(total_cards(&cards), 30);
     }
 
     #[test]
@@ -123,6 +123,6 @@ Card 6: 31 18 13 56 72 | 74 77 10 23 35 67 36 11
 
         let cards = LottoCard::parse_batch(to_lines(input)).unwrap();
 
-        assert_eq!(total_cards(cards), 15_455_663);
+        assert_eq!(total_cards(&cards), 15_455_663);
     }
 }

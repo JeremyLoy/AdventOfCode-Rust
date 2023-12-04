@@ -91,7 +91,7 @@ impl Schematic {
     pub fn collect_part_numbers(&self) -> Vec<i32> {
         self.parts
             .iter()
-            .filter(|(start, end, _n)| self.has_adjacent_symbol(start, end))
+            .filter(|(start, end, _n)| self.has_adjacent_symbol(*start, *end))
             .map(|p| p.2)
             .collect()
     }
@@ -99,13 +99,13 @@ impl Schematic {
     pub fn sum_of_gear_ratios(&self) -> i32 {
         self.find_gears()
             .iter()
-            .map(|gear| self.get_unique_surrounding_numbers(gear))
+            .map(|gear| self.get_unique_surrounding_numbers(*gear))
             .filter(|v| v.len() == 2)
             .map(|v| v.first().unwrap() * v.last().unwrap())
             .sum()
     }
 
-    fn get_surrounding_box(start: &Point, end: &Point) -> Vec<Point> {
+    fn get_surrounding_box(start: Point, end: Point) -> Vec<Point> {
         let mut points = Vec::new();
         //x +/- 1 to include diagonals
         for x in start.x - 1..=end.x + 1 {
@@ -136,14 +136,14 @@ impl Schematic {
             .collect()
     }
 
-    fn has_adjacent_symbol(&self, start: &Point, end: &Point) -> bool {
+    fn has_adjacent_symbol(&self, start: Point, end: Point) -> bool {
         Self::get_surrounding_box(start, end)
             .iter()
             .filter_map(|p| self.grid.get(p))
             .any(|c| !c.is_ascii_digit() && *c != '.')
     }
 
-    fn get_unique_surrounding_numbers(&self, gear: &Point) -> Vec<i32> {
+    fn get_unique_surrounding_numbers(&self, gear: Point) -> Vec<i32> {
         Self::get_surrounding_box(gear, gear)
             .iter()
             .filter_map(|p| self.point_to_int.get(p))
