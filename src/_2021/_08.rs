@@ -2,11 +2,11 @@ use itertools::Itertools;
 
 pub fn count_1478(input: impl Iterator<Item = String>) -> i32 {
     input
-        .map(|line| line.split_once("|").unwrap().1.trim().to_owned())
+        .map(|line| line.split_once('|').unwrap().1.trim().to_owned())
         .map(|output| {
             output.split_whitespace().fold(0, |mut count, digit| {
                 if [2, 3, 4, 7].contains(&(digit.len() as i32)) {
-                    count += 1
+                    count += 1;
                 }
                 count
             })
@@ -15,16 +15,16 @@ pub fn count_1478(input: impl Iterator<Item = String>) -> i32 {
 }
 
 pub const DIGIT_MASKS: [(char, u8); 7] = [
-    ('a', 0b01000000),
-    ('b', 0b00100000),
-    ('c', 0b00010000),
-    ('d', 0b00001000),
-    ('e', 0b00000100),
-    ('f', 0b00000010),
-    ('g', 0b00000001),
+    ('a', 0b0100_0000),
+    ('b', 0b0010_0000),
+    ('c', 0b0001_0000),
+    ('d', 0b0000_1000),
+    ('e', 0b0000_0100),
+    ('f', 0b0000_0010),
+    ('g', 0b0000_0001),
 ];
 pub fn get_bit(c: char) -> u8 {
-    for (ch, bit) in DIGIT_MASKS.iter() {
+    for (ch, bit) in &DIGIT_MASKS {
         if *ch == c {
             return *bit;
         }
@@ -46,7 +46,7 @@ pub fn overlaps(a: u8, b: u8) -> bool {
 pub fn determine_output(row: &str) -> i32 {
     let signals = row
         .split_whitespace()
-        .map(|s| s.trim())
+        .map(str::trim)
         .filter(|s| *s != "|")
         .map(signal_to_mask)
         .collect_vec();

@@ -25,7 +25,7 @@ fn main() {
         .write(true)
         .append(true)
         .open(format!("{}/mod.rs", &src_directory))
-        .or_else(|_| fs::File::create(format!("{}/mod.rs", &src_directory)))
+        .or_else(|_| File::create(format!("{}/mod.rs", &src_directory)))
         .expect("Unable to open file");
 
     for i in start..=end {

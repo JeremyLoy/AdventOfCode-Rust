@@ -23,7 +23,7 @@ pub fn to_lines(input: Input) -> Box<dyn Iterator<Item = String> + '_> {
             Box::new(
                 reader
                     .lines()
-                    .filter_map(Result::ok)
+                    .map_while(Result::ok)
                     .map(|s| s.trim().to_owned())
                     .filter(|s| !s.is_empty()),
             )
@@ -54,9 +54,9 @@ where
     match delim {
         Newline => str
             .lines()
-            .map(|s| s.trim())
+            .map(str::trim)
             .filter_map(string_parser)
             .collect_vec(),
-        Comma => str.split(",").filter_map(string_parser).collect_vec(),
+        Comma => str.split(',').filter_map(string_parser).collect_vec(),
     }
 }

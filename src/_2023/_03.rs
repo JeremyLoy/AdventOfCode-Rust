@@ -32,7 +32,7 @@ impl Schematic {
                     },
                     char,
                 );
-            })
+            });
         });
 
         for y in 0..height {
@@ -48,9 +48,9 @@ impl Schematic {
                     if c.is_numeric() {
                         if !building_number {
                             start = current;
-                            building_number = true
+                            building_number = true;
                         }
-                        number.push(*c)
+                        number.push(*c);
                     } else {
                         if building_number {
                             let end = Point {
@@ -62,7 +62,7 @@ impl Schematic {
                             for x in start.x..=end.x {
                                 point_to_int.insert(Point { x, y: y as i32 }, n);
                             }
-                            number.clear()
+                            number.clear();
                         }
                         building_number = false;
                     }
@@ -147,10 +147,10 @@ impl Schematic {
         Self::get_surrounding_box(gear, gear)
             .iter()
             .filter_map(|p| self.point_to_int.get(p))
-            .map(|i| *i)
+            .copied()
             .collect::<HashSet<i32>>()
             .iter()
-            .map(|i| *i)
+            .copied()
             .collect()
     }
 }

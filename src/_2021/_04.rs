@@ -1,6 +1,5 @@
 use itertools::Itertools;
 use std::collections::HashSet;
-use std::convert::identity;
 
 #[derive(Debug)]
 pub struct BingoBoard([[BingoCell; 5]; 5]);
@@ -32,15 +31,14 @@ impl BingoBoard {
             .filter(|line| !line.is_empty())
             .chunks(5)
             .into_iter()
-            .map(BingoBoard::parse)
-            .filter_map(identity)
+            .filter_map(BingoBoard::parse)
             .collect()
     }
 
     pub fn calculate_score(&self, last_call: i32) -> i32 {
         let mut score = 0;
-        for row in self.0.iter() {
-            for cell in row.iter() {
+        for row in &self.0 {
+            for cell in row {
                 if let BingoCell::Unmarked(value) = cell {
                     score += value;
                 }
@@ -50,8 +48,8 @@ impl BingoBoard {
     }
 
     pub fn mark(&mut self, number: i32) {
-        for row in self.0.iter_mut() {
-            for cell in row.iter_mut() {
+        for row in &mut self.0 {
+            for cell in row {
                 if let BingoCell::Unmarked(value) = cell {
                     if *value == number {
                         *cell = BingoCell::Marked(number);
@@ -62,7 +60,7 @@ impl BingoBoard {
     }
 
     pub fn is_winner(&self) -> bool {
-        for row in self.0.iter() {
+        for row in &self.0 {
             if row.iter().all(|&cell| matches!(cell, BingoCell::Marked(_))) {
                 return true;
             }
@@ -110,7 +108,7 @@ pub fn play_bingo(calls: Vec<i32>, mut boards: Vec<BingoBoard>) -> Vec<i32> {
             i += 1;
             keep
         });
-        past_winners.clear()
+        past_winners.clear();
     }
 
     winning_scores

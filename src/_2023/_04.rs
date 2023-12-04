@@ -22,7 +22,7 @@ impl LottoCard {
         if winning_count == 0 {
             0
         } else {
-            2u32.pow(winning_count - 1) as i32
+            2i32.pow(winning_count - 1)
         }
     }
 }
@@ -31,7 +31,7 @@ pub fn total_cards(cards: Vec<LottoCard>) -> i32 {
     // adding 1 here, and subtracting 1 from the sum to avoid having to adjust card ID and index access since arrays are 0 indexed
     let mut extra_multiplier: Vec<i32> = vec![1; cards.len() + 1];
 
-    cards.iter().for_each(|card| {
+    for card in &cards {
         let matching_count = card.matching_cards();
         for _ in 0..extra_multiplier[card.id as usize] {
             let range = card.id + 1..=(card.id + matching_count);
@@ -39,7 +39,7 @@ pub fn total_cards(cards: Vec<LottoCard>) -> i32 {
                 extra_multiplier[id as usize] += 1;
             }
         }
-    });
+    }
 
     extra_multiplier.iter().sum::<i32>() - 1
 }

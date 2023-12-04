@@ -5,12 +5,9 @@ pub fn find_all_most_common_bits(binary_report: &Vec<String>) -> String {
 
     for s in binary_report {
         for (i, c) in s.char_indices() {
-            match c {
-                '1' => {
-                    let count = freq_of_ones.entry(i).or_insert(0);
-                    *count += 1;
-                }
-                _ => (),
+            if let '1' = c {
+                let count = freq_of_ones.entry(i).or_insert(0);
+                *count += 1;
             }
         }
     }
@@ -20,12 +17,12 @@ pub fn find_all_most_common_bits(binary_report: &Vec<String>) -> String {
         match freq_of_ones.get(&i) {
             Some(i) => {
                 if *i > (binary_report.len() / 2) {
-                    ret.push('1')
+                    ret.push('1');
                 } else {
-                    ret.push('0')
+                    ret.push('0');
                 }
             }
-            _ => panic!("index {} wasn't found in freq map", i),
+            _ => panic!("index {i} wasn't found in freq map"),
         }
     }
 
@@ -48,8 +45,8 @@ pub fn find_component_rating(mut binary_report: Vec<String>, bit_criteria: BitCr
             match s.chars().nth(position) {
                 Some('0') => freq0 += 1,
                 Some('1') => freq1 += 1,
-                Some(e) => panic!("unhandled char {}", e),
-                None => panic!("no char at pos {}", position),
+                Some(e) => panic!("unhandled char {e}"),
+                None => panic!("no char at pos {position}"),
             }
         }
         let bit_to_keep = match bit_criteria {
@@ -83,7 +80,7 @@ pub fn flip_binary_str_bits(binary: &str) -> String {
         .map(|bit| match bit {
             '0' => '1',
             '1' => '0',
-            _ => panic!("Invalid bit: {}", bit),
+            _ => panic!("Invalid bit: {bit}"),
         })
         .collect()
 }
@@ -121,7 +118,7 @@ mod tests {
         let power_consumption =
             binary_str_to_decimal(&gamma_rate) * binary_str_to_decimal(&epsilon_rate);
 
-        assert_eq!(power_consumption, 198)
+        assert_eq!(power_consumption, 198);
     }
 
     #[test]
@@ -134,7 +131,7 @@ mod tests {
         let power_consumption =
             binary_str_to_decimal(&gamma_rate) * binary_str_to_decimal(&epsilon_rate);
 
-        assert_eq!(power_consumption, 3_633_500)
+        assert_eq!(power_consumption, 3_633_500);
     }
 
     #[test]
@@ -160,7 +157,7 @@ mod tests {
         let life_support_rating = binary_str_to_decimal(&oxygen_generator_rating)
             * binary_str_to_decimal(&co2_scrubber_rating);
 
-        assert_eq!(life_support_rating, 230)
+        assert_eq!(life_support_rating, 230);
     }
 
     #[test]
@@ -172,6 +169,6 @@ mod tests {
         let life_support_rating = binary_str_to_decimal(&oxygen_generator_rating)
             * binary_str_to_decimal(&co2_scrubber_rating);
 
-        assert_eq!(life_support_rating, 4_550_283)
+        assert_eq!(life_support_rating, 4_550_283);
     }
 }

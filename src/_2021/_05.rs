@@ -7,7 +7,7 @@ pub struct Point {
 }
 impl Point {
     pub fn parse_line_to_point(point_str: &str) -> Option<Self> {
-        let (x_str, y_str) = point_str.split_once(",")?;
+        let (x_str, y_str) = point_str.split_once(',')?;
         let x = x_str.trim().parse::<i32>().ok()?;
         let y = y_str.trim().parse::<i32>().ok()?;
         Some(Point { x, y })

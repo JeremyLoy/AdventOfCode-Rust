@@ -7,24 +7,24 @@ pub fn parse_letter_and_literal_calibration_value(str: &str) -> Option<i32> {
     let mut digits: Vec<i32> = Vec::new();
     for i in 0..str.len() {
         let substring = &str[i..];
-        if substring.starts_with("1") || substring.starts_with("one") {
-            digits.push(1)
-        } else if substring.starts_with("2") || substring.starts_with("two") {
-            digits.push(2)
-        } else if substring.starts_with("3") || substring.starts_with("three") {
-            digits.push(3)
-        } else if substring.starts_with("4") || substring.starts_with("four") {
-            digits.push(4)
-        } else if substring.starts_with("5") || substring.starts_with("five") {
-            digits.push(5)
-        } else if substring.starts_with("6") || substring.starts_with("six") {
-            digits.push(6)
-        } else if substring.starts_with("7") || substring.starts_with("seven") {
-            digits.push(7)
-        } else if substring.starts_with("8") || substring.starts_with("eight") {
-            digits.push(8)
-        } else if substring.starts_with("9") || substring.starts_with("nine") {
-            digits.push(9)
+        if substring.starts_with('1') || substring.starts_with("one") {
+            digits.push(1);
+        } else if substring.starts_with('2') || substring.starts_with("two") {
+            digits.push(2);
+        } else if substring.starts_with('3') || substring.starts_with("three") {
+            digits.push(3);
+        } else if substring.starts_with('4') || substring.starts_with("four") {
+            digits.push(4);
+        } else if substring.starts_with('5') || substring.starts_with("five") {
+            digits.push(5);
+        } else if substring.starts_with('6') || substring.starts_with("six") {
+            digits.push(6);
+        } else if substring.starts_with('7') || substring.starts_with("seven") {
+            digits.push(7);
+        } else if substring.starts_with('8') || substring.starts_with("eight") {
+            digits.push(8);
+        } else if substring.starts_with('9') || substring.starts_with("nine") {
+            digits.push(9);
         }
     }
     Some((digits.first()? * 10) + digits.last()?)
@@ -65,14 +65,14 @@ pqr3stu8vwx
 a1b2c3d4e5f
 treb7uchet");
         let calibration_values = parse_batch_calibration_values(to_lines(input), Literals).unwrap();
-        assert_eq!(calibration_values.iter().sum::<i32>(), 142)
+        assert_eq!(calibration_values.iter().sum::<i32>(), 142);
     }
 
     #[test]
     fn test_1() {
         let input = Path("input/2023/01.txt");
         let calibration_values = parse_batch_calibration_values(to_lines(input), Literals).unwrap();
-        assert_eq!(calibration_values.iter().sum::<i32>(), 54_601)
+        assert_eq!(calibration_values.iter().sum::<i32>(), 54_601);
     }
 
     #[test]
@@ -87,7 +87,7 @@ zoneight234
 7pqrstsixteen");
         let calibration_values =
             parse_batch_calibration_values(to_lines(input), LettersAndLiterals).unwrap();
-        assert_eq!(calibration_values.iter().sum::<i32>(), 281)
+        assert_eq!(calibration_values.iter().sum::<i32>(), 281);
     }
 
     #[test]
@@ -95,6 +95,6 @@ zoneight234
         let input = Path("input/2023/01.txt");
         let calibration_values =
             parse_batch_calibration_values(to_lines(input), LettersAndLiterals).unwrap();
-        assert_eq!(calibration_values.iter().sum::<i32>(), 54_078)
+        assert_eq!(calibration_values.iter().sum::<i32>(), 54_078);
     }
 }

@@ -13,10 +13,10 @@ impl FromStr for Set {
     type Err = ();
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(s.split(",")
+        Ok(s.split(',')
             .filter_map(|cube| {
                 let cube = cube.trim();
-                let (count, color) = cube.split_once(" ")?;
+                let (count, color) = cube.split_once(' ')?;
                 let count = count.parse::<i32>().ok()?;
                 match color {
                     "blue" => Some(Blue(count)),
@@ -52,11 +52,11 @@ impl FromStr for Game {
     type Err = Box<dyn Error>;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let (id, sets) = s.split_once(":").ok_or("")?;
+        let (id, sets) = s.split_once(':').ok_or("")?;
         let id = id.split_whitespace().last().ok_or("")?.parse::<i32>()?;
 
         let sets = sets
-            .split(";")
+            .split(';')
             .filter_map(|set| set.parse::<Set>().ok())
             .collect();
 
@@ -104,7 +104,7 @@ pub fn calculate_power(game: &Game) -> i32 {
         min
     });
 
-    return min.blue_count * min.green_count * min.red_count;
+    min.blue_count * min.green_count * min.red_count
 }
 
 pub fn sum_of_powers(games: Vec<Game>) -> i32 {
