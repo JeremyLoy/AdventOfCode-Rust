@@ -9,19 +9,11 @@ pub struct Almanac {
     maps: Vec<Vec<AlmanacEntry>>,
 }
 
+/// Note: Range doesn't implement Copy so this cannot implement Copy
+#[derive(Clone)]
 pub struct AlmanacEntry {
     source: Range<u64>,
     destination: Range<u64>,
-}
-
-impl AlmanacEntry {
-    // TODO figure out why Copy/Clone doesn't work here
-    fn dupe(&self) -> AlmanacEntry {
-        AlmanacEntry {
-            source: self.source.start..self.source.end,
-            destination: self.destination.start..self.destination.end,
-        }
-    }
 }
 
 impl FromStr for AlmanacEntry {
@@ -73,8 +65,7 @@ impl Almanac {
         s.for_each(|row| {
             let row = row.trim();
             if row.ends_with(':') {
-                // weird work around because copy/clone can't be used for ranges
-                maps.push(current_map.iter().map(AlmanacEntry::dupe).collect());
+                maps.push(current_map.clone());
                 current_map = Vec::new();
                 return;
             }
@@ -112,9 +103,8 @@ impl Almanac {
     }
 
     pub fn lowest_location_over_ranges(&self) -> u64 {
-        let clone_ranges = self.seed_ranges.clone();
-        clone_ranges
-            .into_iter()
+        self.seed_ranges
+            .iter()
             .flat_map(|range| range.start..range.end)
             .map(|seed| self.get_location(seed))
             .min()
