@@ -50,7 +50,7 @@ impl FromStr for AlmanacEntry {
 }
 
 impl Almanac {
-    fn from_iter(mut s: impl Iterator<Item = String>) -> Option<Almanac> {
+    pub fn new(mut s: impl Iterator<Item = String>) -> Option<Almanac> {
         let seeds = s.next()?;
         let seeds: Vec<u64> = seeds
             .split_once(':')?
@@ -166,7 +166,7 @@ humidity-to-location map:
 56 93 4
 ");
 
-        let almanac = Almanac::from_iter(to_lines(input)).unwrap();
+        let almanac = Almanac::new(to_lines(input)).unwrap();
 
         assert_eq!(almanac.lowest_location(), 35);
     }
@@ -175,7 +175,7 @@ humidity-to-location map:
     fn test_1() {
         let input = Path("input/2023/05.txt");
 
-        let almanac = Almanac::from_iter(to_lines(input)).unwrap();
+        let almanac = Almanac::new(to_lines(input)).unwrap();
 
         assert_eq!(almanac.lowest_location(), 107_430_936);
     }
@@ -218,7 +218,7 @@ humidity-to-location map:
 56 93 4
 ");
 
-        let almanac = Almanac::from_iter(to_lines(input)).unwrap();
+        let almanac = Almanac::new(to_lines(input)).unwrap();
 
         assert_eq!(almanac.lowest_location_over_ranges(), 46);
     }
@@ -228,7 +228,7 @@ humidity-to-location map:
     fn test_2() {
         let input = Path("input/2023/05.txt");
 
-        let almanac = Almanac::from_iter(to_lines(input)).unwrap();
+        let almanac = Almanac::new(to_lines(input)).unwrap();
 
         assert_eq!(almanac.lowest_location_over_ranges(), 23_738_616);
     }
