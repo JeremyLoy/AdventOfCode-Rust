@@ -1,4 +1,5 @@
 use itertools::Itertools;
+use rayon::prelude::*;
 use std::error::Error;
 use std::ops::Range;
 use std::str::FromStr;
@@ -83,15 +84,23 @@ impl Almanac {
     }
 
     pub fn get_location(&self, seed: u64) -> u64 {
-        let mut location = seed;
-
-        self.maps.iter().for_each(|map| {
+        self.maps.iter().fold(seed, |location, map| {
             if let Some(entry) = map.iter().find(|entry| entry.source.contains(&location)) {
-                location = entry.destination.start + (location - entry.source.start);
+                entry.destination.start + (location - entry.source.start)
+            } else {
+                location
             }
-        });
+        })
+    }
 
-        location
+    pub fn get_seed(&self, location: u64) -> u64 {
+        self.maps.iter().rev().fold(location, |seed, map| {
+            if let Some(entry) = map.iter().find(|entry| entry.destination.contains(&seed)) {
+                entry.source.start + (seed - entry.destination.start)
+            } else {
+                seed
+            }
+        })
     }
 
     pub fn lowest_location(&self) -> u64 {
@@ -103,12 +112,14 @@ impl Almanac {
     }
 
     pub fn lowest_location_over_ranges(&self) -> u64 {
-        self.seed_ranges
-            .iter()
-            .flat_map(|range| range.start..range.end)
-            .map(|seed| self.get_location(seed))
-            .min()
-            .expect("non-empty seeds")
+        (0..u64::MAX)
+            .into_par_iter()
+            .find_first(|location| {
+                let seed = self.get_seed(*location);
+                let found = self.seed_ranges.iter().find(|range| range.contains(&seed));
+                found.is_some()
+            })
+            .unwrap()
     }
 }
 
@@ -214,7 +225,6 @@ humidity-to-location map:
     }
 
     #[test]
-    #[ignore] // until I develop a non-bruteforce strategry that doesn't take 1 hour to run (:
     fn test_2() {
         let input = Path("input/2023/05.txt");
 

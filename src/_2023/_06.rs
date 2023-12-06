@@ -1,5 +1,3 @@
-use std::fs::remove_dir_all;
-
 #[derive(Debug, PartialOrd, PartialEq)]
 pub struct Race {
     duration: u64,
