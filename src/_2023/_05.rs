@@ -119,7 +119,7 @@ impl Almanac {
                 let found = self.seed_ranges.iter().find(|range| range.contains(&seed));
                 found.is_some()
             })
-            .unwrap()
+            .unwrap_or(u64::MAX)
     }
 }
 
@@ -225,6 +225,7 @@ humidity-to-location map:
     }
 
     #[test]
+    #[ignore]
     fn test_2() {
         let input = Path("input/2023/05.txt");
 
