@@ -5,6 +5,26 @@ pub struct Race {
 }
 
 impl Race {
+    pub fn one_from_iterator(mut i: impl Iterator<Item = String>) -> Option<Race> {
+        let (duration, record) = (i.next()?, i.next()?);
+
+        let (_, duration) = duration.split_once(':')?;
+        let (_, record) = record.split_once(':')?;
+
+        let duration = duration
+            .replace(char::is_whitespace, "")
+            .parse::<u64>()
+            .ok()?;
+        let record = record
+            .replace(char::is_whitespace, "")
+            .parse::<u64>()
+            .ok()?;
+
+        Some(Race { duration, record })
+    }
+}
+
+impl Race {
     pub fn from_iterator(mut i: impl Iterator<Item = String>) -> Option<Vec<Race>> {
         let (durations, records) = (i.next()?, i.next()?);
 
@@ -31,15 +51,54 @@ impl Race {
     }
 
     pub fn winning_permutations(&self) -> u64 {
-        (1..self.duration).fold(0, |i, held_duration| {
+        let is_winner = |held_duration: &u64| {
             let remaining_time = self.duration - held_duration;
             let distance_travelled = remaining_time * held_duration;
-            if distance_travelled > self.record {
-                i + 1
-            } else {
-                i
+            distance_travelled > self.record
+        };
+        let find_smallest_winner_binary_search = |start: u64, end: u64| {
+            let mut left = start;
+            let mut right = end;
+
+            while left < right {
+                let mid = left + (right - left) / 2;
+
+                if is_winner(&mid) {
+                    right = mid;
+                } else {
+                    left = mid + 1;
+                }
             }
-        })
+
+            if left < end && is_winner(&left) {
+                left
+            } else {
+                start
+            }
+        };
+        let find_largest_winner_binary_search = |start: u64, end: u64| {
+            let mut left = start;
+            let mut right = end;
+
+            while left < right {
+                let mid = left + (right - left) / 2;
+
+                if is_winner(&mid) {
+                    left = mid + 1;
+                } else {
+                    right = mid;
+                }
+            }
+
+            if right > 0 && is_winner(&(right - 1)) {
+                right - 1
+            } else {
+                end
+            }
+        };
+        let start_pos = find_smallest_winner_binary_search(1, self.duration - 1);
+        let end_pos = find_largest_winner_binary_search(1, self.duration - 1);
+        end_pos - start_pos + 1
     }
 }
 
@@ -71,6 +130,20 @@ Distance:  9  40  200
         ];
 
         assert_eq!(expected, Race::from_iterator(to_lines(input)).unwrap());
+    }
+
+    #[test]
+    fn test_one_from_iterator() {
+        let input = Raw("\
+Time:      7  15   30
+Distance:  9  40  200
+");
+        let expected = Race {
+            duration: 71_530,
+            record: 940_200,
+        };
+
+        assert_eq!(expected, Race::one_from_iterator(to_lines(input)).unwrap());
     }
 
     #[test]
@@ -108,25 +181,22 @@ Distance:  9  40  200
 
     #[test]
     fn test_2_sample() {
-        assert_eq!(
-            Race {
-                duration: 71_530,
-                record: 940_200
-            }
-            .winning_permutations(),
-            71_503
-        );
+        let input = Raw("\
+Time:      7  15   30
+Distance:  9  40  200
+");
+
+        let race = Race::one_from_iterator(to_lines(input)).unwrap();
+
+        assert_eq!(race.winning_permutations(), 71_503);
     }
 
     #[test]
     fn test_2() {
-        assert_eq!(
-            Race {
-                duration: 47_847_467,
-                record: 207_139_412_091_014,
-            }
-            .winning_permutations(),
-            38_220_708
-        );
+        let input = Path("input/2023/06.txt");
+
+        let race = Race::one_from_iterator(to_lines(input)).unwrap();
+
+        assert_eq!(race.winning_permutations(), 38_220_708);
     }
 }
