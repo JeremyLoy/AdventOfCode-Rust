@@ -48,22 +48,19 @@ where
     instructions
         .iter()
         .cycle()
-        .fold_while(
-            (start.to_string(), 0),
-            |(mut current, steps), instruction| {
-                let (left, right) = graph.get(&current).expect("all nodes should have an entry");
-                if *instruction == 'L' {
-                    current = left.clone();
-                } else {
-                    current = right.clone();
-                }
-                if is_done(&current) {
-                    Done((current, steps + 1))
-                } else {
-                    Continue((current, steps + 1))
-                }
-            },
-        )
+        .fold_while((start, 0), |(mut current, steps), instruction| {
+            let (left, right) = graph.get(current).expect("all nodes should have an entry");
+            if *instruction == 'L' {
+                current = left;
+            } else {
+                current = right;
+            }
+            if is_done(current) {
+                Done((current, steps + 1))
+            } else {
+                Continue((current, steps + 1))
+            }
+        })
         .into_inner()
         .1
 }
