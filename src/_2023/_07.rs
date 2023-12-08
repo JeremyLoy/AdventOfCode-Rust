@@ -1,6 +1,4 @@
-use crate::_2023::_07::Card::{
-    Ace, Eight, Five, Four, Jack, Joker, King, Nine, Queen, Seven, Six, Ten, Three, Two,
-};
+use crate::_2023::_07::Card::{Ace, Jack, Joker, King, Number, Queen};
 use crate::_2023::_07::HandType::{
     FiveOfAKind, FourOfAKind, FullHouse, HighCard, OnePair, ThreeOfAKind, TwoPair,
 };
@@ -10,6 +8,7 @@ use std::cmp::Ordering::Equal;
 use std::collections::HashMap;
 use std::error::Error;
 
+#[derive(Debug)]
 pub struct Hand {
     hand_type: HandType,
     cards: Vec<Card>,
@@ -63,7 +62,7 @@ impl Ord for Hand {
     }
 }
 
-#[derive(Ord, PartialOrd, Eq, PartialEq)]
+#[derive(Debug, Ord, PartialOrd, Eq, PartialEq)]
 pub enum HandType {
     HighCard,
     OnePair,
@@ -83,48 +82,29 @@ impl HandType {
 
         let joker_count = count_by_card.remove(&Joker).unwrap_or(0);
 
-        let non_joker_cards: Vec<i32> = count_by_card.values().copied().collect();
+        let mut sorted_counts: Vec<i32> = count_by_card.values().copied().sorted().rev().collect();
+        if let Some(first) = sorted_counts.first_mut() {
+            *first += joker_count;
+        } else {
+            sorted_counts.insert(0, joker_count);
+        }
 
-        let max_non_joker_count = *non_joker_cards.iter().max().unwrap_or(&0);
-
-        let three_of_a_kind = non_joker_cards.contains(&3);
-        let two_pair = non_joker_cards.iter().filter(|i| **i == 2).count() == 2;
-        let one_pair = non_joker_cards.contains(&2);
-
-        if joker_count + max_non_joker_count == 5 {
-            return FiveOfAKind;
+        match sorted_counts.as_slice() {
+            [5, ..] => FiveOfAKind,
+            [4, ..] => FourOfAKind,
+            [3, 2, ..] => FullHouse,
+            [3, ..] => ThreeOfAKind,
+            [2, 2, ..] => TwoPair,
+            [2, ..] => OnePair,
+            _ => HighCard,
         }
-        if joker_count + max_non_joker_count == 4 {
-            return FourOfAKind;
-        }
-        if (three_of_a_kind && one_pair) || (two_pair && joker_count == 1) {
-            return FullHouse;
-        }
-        if max_non_joker_count + joker_count == 3 {
-            return ThreeOfAKind;
-        }
-        if two_pair || (one_pair && joker_count > 0) {
-            return TwoPair;
-        }
-        if one_pair || joker_count > 0 {
-            return OnePair;
-        }
-        HighCard
     }
 }
 
-#[derive(Hash, Ord, PartialOrd, Eq, PartialEq)]
+#[derive(Debug, Hash, Ord, PartialOrd, Eq, PartialEq)]
 pub enum Card {
     Joker,
-    Two,
-    Three,
-    Four,
-    Five,
-    Six,
-    Seven,
-    Eight,
-    Nine,
-    Ten,
+    Number(u32),
     Jack,
     Queen,
     King,
@@ -134,15 +114,8 @@ pub enum Card {
 impl Card {
     fn from_char(s: char, include_joker: bool) -> Option<Self> {
         Some(match s {
-            '2' => Two,
-            '3' => Three,
-            '4' => Four,
-            '5' => Five,
-            '6' => Six,
-            '7' => Seven,
-            '8' => Eight,
-            '9' => Nine,
-            'T' => Ten,
+            '2'..='9' => Number(s.to_digit(10).expect("was a digit")),
+            'T' => Number(10),
             'J' => {
                 if include_joker {
                     Joker
