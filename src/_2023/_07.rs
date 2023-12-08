@@ -1,105 +1,10 @@
 use crate::_2023::_07::Card::{Ace, Jack, Joker, King, Number, Queen};
-use crate::_2023::_07::HandType::{
+use crate::_2023::_07::Hand::{
     FiveOfAKind, FourOfAKind, FullHouse, HighCard, OnePair, ThreeOfAKind, TwoPair,
 };
 use itertools::Itertools;
-use std::cmp::Ordering;
-use std::cmp::Ordering::Equal;
 use std::collections::HashMap;
 use std::error::Error;
-
-#[derive(Debug)]
-pub struct Hand {
-    hand_type: HandType,
-    cards: Vec<Card>,
-    bid: i32,
-}
-
-impl Hand {
-    pub fn parse_batch(i: impl Iterator<Item = String>, include_joker: bool) -> Option<Vec<Hand>> {
-        i.map(|s| Hand::from_str(&s, include_joker).ok())
-            .sorted()
-            .collect()
-    }
-
-    fn from_str(s: &str, include_joker: bool) -> Result<Self, Box<dyn Error>> {
-        let (cards, bid) = s.trim().split_once(' ').ok_or("expected to split once")?;
-        let cards: Vec<Card> = cards
-            .chars()
-            .map(|c| Card::from_char(c, include_joker))
-            .collect::<Option<Vec<Card>>>()
-            .ok_or("could not parse cards")?;
-        let bid = bid.parse::<i32>()?;
-        Ok(Hand {
-            hand_type: HandType::from_cards(&cards),
-            cards,
-            bid,
-        })
-    }
-}
-
-impl Eq for Hand {}
-
-impl PartialEq<Self> for Hand {
-    fn eq(&self, other: &Self) -> bool {
-        self.hand_type == other.hand_type && self.cards == other.cards
-    }
-}
-
-impl PartialOrd<Self> for Hand {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
-impl Ord for Hand {
-    fn cmp(&self, other: &Self) -> Ordering {
-        let hand_type_ordering = self.hand_type.cmp(&other.hand_type);
-        if hand_type_ordering == Equal {
-            return self.cards.cmp(&other.cards);
-        }
-        hand_type_ordering
-    }
-}
-
-#[derive(Debug, Ord, PartialOrd, Eq, PartialEq)]
-pub enum HandType {
-    HighCard,
-    OnePair,
-    TwoPair,
-    ThreeOfAKind,
-    FullHouse,
-    FourOfAKind,
-    FiveOfAKind,
-}
-
-impl HandType {
-    pub fn from_cards(cards: &[Card]) -> HandType {
-        let mut count_by_card = HashMap::new();
-        for card in cards {
-            *count_by_card.entry(card).or_insert(0) += 1;
-        }
-
-        let joker_count = count_by_card.remove(&Joker).unwrap_or(0);
-
-        let mut sorted_counts: Vec<i32> = count_by_card.values().copied().sorted().rev().collect();
-        if let Some(first) = sorted_counts.first_mut() {
-            *first += joker_count;
-        } else {
-            sorted_counts.insert(0, joker_count);
-        }
-
-        match sorted_counts.as_slice() {
-            [5, ..] => FiveOfAKind,
-            [4, ..] => FourOfAKind,
-            [3, 2, ..] => FullHouse,
-            [3, ..] => ThreeOfAKind,
-            [2, 2, ..] => TwoPair,
-            [2, ..] => OnePair,
-            _ => HighCard,
-        }
-    }
-}
 
 #[derive(Debug, Hash, Ord, PartialOrd, Eq, PartialEq)]
 pub enum Card {
@@ -131,11 +36,71 @@ impl Card {
     }
 }
 
-pub fn total_winnings(hands: &[Hand]) -> u64 {
+#[derive(Debug, Ord, PartialOrd, Eq, PartialEq)]
+pub enum Hand {
+    HighCard(Vec<Card>),
+    OnePair(Vec<Card>),
+    TwoPair(Vec<Card>),
+    ThreeOfAKind(Vec<Card>),
+    FullHouse(Vec<Card>),
+    FourOfAKind(Vec<Card>),
+    FiveOfAKind(Vec<Card>),
+}
+
+impl Hand {
+    pub fn parse_batch(
+        i: impl Iterator<Item = String>,
+        include_joker: bool,
+    ) -> Option<Vec<(Hand, i32)>> {
+        i.map(|s| Hand::from_str(&s, include_joker).ok())
+            .sorted()
+            .collect()
+    }
+
+    fn from_str(s: &str, include_joker: bool) -> Result<(Self, i32), Box<dyn Error>> {
+        let (cards, bid) = s.trim().split_once(' ').ok_or("expected to split once")?;
+
+        let cards: Vec<Card> = cards
+            .chars()
+            .map(|c| Card::from_char(c, include_joker))
+            .collect::<Option<Vec<Card>>>()
+            .ok_or("could not parse cards")?;
+
+        let bid = bid.parse::<i32>()?;
+
+        let mut count_by_card = HashMap::new();
+        for card in cards.as_slice() {
+            *count_by_card.entry(card).or_insert(0) += 1;
+        }
+
+        let joker_count = count_by_card.remove(&Joker).unwrap_or(0);
+
+        let mut sorted_counts: Vec<i32> = count_by_card.values().copied().sorted().rev().collect();
+        if let Some(first) = sorted_counts.first_mut() {
+            *first += joker_count;
+        } else {
+            sorted_counts.insert(0, joker_count);
+        }
+
+        let hand = match sorted_counts.as_slice() {
+            [5, ..] => FiveOfAKind(cards),
+            [4, ..] => FourOfAKind(cards),
+            [3, 2, ..] => FullHouse(cards),
+            [3, ..] => ThreeOfAKind(cards),
+            [2, 2, ..] => TwoPair(cards),
+            [2, ..] => OnePair(cards),
+            _ => HighCard(cards),
+        };
+
+        Ok((hand, bid))
+    }
+}
+
+pub fn total_winnings(hands: &[(Hand, i32)]) -> u64 {
     hands
         .iter()
         .enumerate()
-        .map(|(i, hand)| (i + 1) as u64 * hand.bid as u64)
+        .map(|(i, hand)| (i + 1) as u64 * hand.1 as u64)
         .sum()
 }
 
