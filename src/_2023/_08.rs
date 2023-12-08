@@ -2,9 +2,8 @@ use itertools::FoldWhile::{Continue, Done};
 use itertools::Itertools;
 use std::collections::HashMap;
 
-pub fn parse(
-    mut i: impl Iterator<Item = String>,
-) -> (Vec<char>, HashMap<String, (String, String)>) {
+pub fn parse(i: &[String]) -> (Vec<char>, HashMap<&str, (&str, &str)>) {
+    let mut i = i.iter();
     let instructions = i
         .next()
         .expect("instructions should exist")
@@ -17,11 +16,11 @@ pub fn parse(
 
             let (left, right) = values.split_once(',').expect("line has values");
             let (left, right) = (
-                left.trim().trim_start_matches('(').to_string(),
-                right.trim().trim_end_matches(')').to_string(),
+                left.trim().trim_start_matches('('),
+                right.trim().trim_end_matches(')'),
             );
 
-            (key.trim().to_string(), (left, right))
+            (key.trim(), (left, right))
         })
         .collect();
 
@@ -38,7 +37,7 @@ pub fn ends_with_z(current: &str) -> bool {
 
 pub fn steps_to_done<F>(
     instructions: &[char],
-    graph: &HashMap<String, (String, String)>,
+    graph: &HashMap<&str, (&str, &str)>,
     start: &str,
     is_done: F,
 ) -> u64
@@ -81,11 +80,11 @@ pub fn lcm_of_list(numbers: &[u64]) -> u64 {
     numbers.iter().fold(1, |acc, &num| lcm(acc, num))
 }
 
-pub fn ghost_steps_to_z(instructions: &[char], graph: &HashMap<String, (String, String)>) -> u64 {
-    let ghosts: Vec<String> = graph
+pub fn ghost_steps_to_z(instructions: &[char], graph: &HashMap<&str, (&str, &str)>) -> u64 {
+    let ghosts: Vec<&str> = graph
         .keys()
         .filter(|key| key.ends_with('A'))
-        .cloned()
+        .copied()
         .collect();
     let steps: Vec<u64> = ghosts
         .iter()
@@ -121,9 +120,11 @@ AAA = (BBB, BBB)
 BBB = (AAA, ZZZ)
 ZZZ = (ZZZ, ZZZ)
 ");
+        let input1 = to_lines(input1).collect::<Vec<_>>();
+        let input2 = to_lines(input2).collect::<Vec<_>>();
 
-        let first = parse(to_lines(input1));
-        let second = parse(to_lines(input2));
+        let first = parse(&input1);
+        let second = parse(&input2);
 
         assert_eq!(steps_to_done(&first.0, &first.1, "AAA", is_zzz), 2);
         assert_eq!(steps_to_done(&second.0, &second.1, "AAA", is_zzz), 6);
@@ -133,7 +134,8 @@ ZZZ = (ZZZ, ZZZ)
     fn test_1() {
         let input = Path("input/2023/08.txt");
 
-        let graph = parse(to_lines(input));
+        let input = to_lines(input).collect::<Vec<_>>();
+        let graph = parse(&input);
 
         assert_eq!(steps_to_done(&graph.0, &graph.1, "AAA", is_zzz), 19_241);
     }
@@ -153,7 +155,8 @@ LR
 XXX = (XXX, XXX)
 ");
 
-        let graph = parse(to_lines(input));
+        let input = to_lines(input).collect::<Vec<_>>();
+        let graph = parse(&input);
 
         assert_eq!(ghost_steps_to_z(&graph.0, &graph.1), 6);
     }
@@ -162,7 +165,8 @@ XXX = (XXX, XXX)
     fn test_2() {
         let input = Path("input/2023/08.txt");
 
-        let graph = parse(to_lines(input));
+        let input = to_lines(input).collect::<Vec<_>>();
+        let graph = parse(&input);
 
         assert_eq!(ghost_steps_to_z(&graph.0, &graph.1), 9_606_140_307_013);
     }
