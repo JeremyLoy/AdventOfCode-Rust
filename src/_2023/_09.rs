@@ -18,17 +18,9 @@ pub fn extrapolate(history: &[i32]) -> i32 {
 }
 
 pub fn extrapolate_backwards(history: &[i32]) -> i32 {
-    let sequences = sequences(history);
-
-    let mut additional_column = vec![*sequences.first().unwrap().first().unwrap()];
-    for w in sequences.windows(2) {
-        additional_column.insert(
-            0,
-            w[1].first().unwrap() - additional_column.first().unwrap(),
-        );
-    }
-
-    *additional_column.first().unwrap()
+    let mut history = history.to_vec();
+    history.reverse();
+    extrapolate(&history)
 }
 
 fn sequences(history: &[i32]) -> Vec<Vec<i32>> {
