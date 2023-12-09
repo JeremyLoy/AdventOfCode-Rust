@@ -38,40 +38,44 @@ fn main() {
         fs::write(
             &file_name,
             format!(
-                r##"
+                r##"pub fn parse(input: &str) -> i32 {{
+    input.parse().unwrap_or(0)
+}}
+
 #[cfg(test)]
 mod tests {{
     use super::*;
-    use crate::input_parsing::Input::{{Path, Raw}};
+    
+    const SAMPLE: &str = "\
+";
+    const INPUT: &str = include_str!("../../input/{year}/{day}.txt");
 
     #[test]
     fn test_1_sample() {{
-        let input = Raw("\
-");
+        let input = parse(SAMPLE);
 
-        assert_eq!(2, 1 + 1);
+        assert_eq!(input, 1 + 1);
     }}
 
     #[test]
     fn test_1() {{
-        let input = Path("input/{year}/{day}.txt");
+        let input = parse(INPUT);
 
-        assert_eq!(2, 1 + 1);
+        assert_eq!(input, 1 + 1);
     }}
 
     #[test]
     fn test_2_sample() {{
-        let input = Raw("\
-");
+        let input = parse(SAMPLE);
 
-        assert_eq!(2, 1 + 1);
+        assert_eq!(input, 1 + 1);
     }}
 
     #[test]
     fn test_2() {{
-        let input = Path("input/{year}/{day}.txt");
+        let input = parse(INPUT);
 
-        assert_eq!(2, 1 + 1);
+        assert_eq!(input, 1 + 1);
     }}
 }}"##,
             ),
