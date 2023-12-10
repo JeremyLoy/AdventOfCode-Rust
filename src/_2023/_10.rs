@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::fmt::{Display, Formatter};
 
 #[derive(Copy, Clone, Eq, PartialEq)]
@@ -88,12 +88,55 @@ pub fn parse_maze(input: &str) -> (Point, HashMap<Point, Pipe>) {
     (start, maze)
 }
 
+fn all_points_in_loop(start: Point, maze: &HashMap<Point, Pipe>) -> Vec<Point> {
+    let mut points = Vec::new();
+
+    let (start_heading, start_pipe) = find_starts_heading(start, maze);
+    let next = get_next_point(start_heading, start_pipe, start);
+    let mut next_heading = next.0;
+    let mut next_point = next.1;
+    points.push(next_point);
+    let mut next_pipe = maze.get(&next_point).expect("all points should be in maze");
+    while next_point != start {
+        (next_heading, next_point) = get_next_point(next_heading, *next_pipe, next_point);
+        next_pipe = maze.get(&next_point).expect("all points should be in grid");
+        points.push(next_point);
+    }
+    points
+}
+
 pub fn maze_to_string(maze: &HashMap<Point, Pipe>, x: usize, y: usize) -> String {
     let mut s = String::new();
     for y in 0..y {
         for x in 0..x {
-            if let Some(point) = maze.get(&Point { x, y }) {
-                s += point.to_string().as_str();
+            if let Some(pipe) = maze.get(&Point { x, y }) {
+                s += pipe.to_string().as_str();
+            }
+        }
+        s.push('\n');
+    }
+    s.pop(); // remove trailing newline
+    s
+}
+
+pub fn only_loop_as_string(
+    maze: &mut HashMap<Point, Pipe>,
+    x: usize,
+    y: usize,
+    start: Point,
+) -> String {
+    let points: HashSet<Point> = HashSet::from_iter(all_points_in_loop(start, maze));
+
+    let mut s = String::new();
+    for y in 0..y {
+        for x in 0..x {
+            let point = Point { x, y };
+            if let Some(pipe) = maze.get(&point) {
+                if points.contains(&point) {
+                    s += pipe.to_string().as_str();
+                } else {
+                    s += "0";
+                }
             }
         }
         s.push('\n');
@@ -110,6 +153,10 @@ pub fn find_starts_heading(start: Point, _maze: &HashMap<Point, Pipe>) -> (Headi
         (Heading::N, Pipe::SE)
     } else if start == (Point { x: 119, y: 72 }) {
         (Heading::E, Pipe::NW)
+    } else if start == (Point { x: 12, y: 4 }) {
+        (Heading::N, Pipe::SE)
+    } else if start == (Point { x: 4, y: 0 }) {
+        (Heading::N, Pipe::SW)
     } else {
         panic!("unknown start point {start:?}")
     }
@@ -151,22 +198,33 @@ pub fn get_next_point(heading: Heading, cur_pipe: Pipe, cur_point: Point) -> (He
 }
 
 pub fn furthest_point(start: Point, maze: &HashMap<Point, Pipe>) -> i32 {
-    let (start_heading, start_pipe) = find_starts_heading(start, maze);
-    let next = get_next_point(start_heading, start_pipe, start);
-    let mut next_heading = next.0;
-    let mut next_point = next.1;
-    let mut next_pipe = maze.get(&next_point).expect("all points should be in maze");
-    let mut steps = 1;
-    while next_point != start {
-        (next_heading, next_point) = get_next_point(next_heading, *next_pipe, next_point);
-        next_pipe = maze.get(&next_point).expect("all points should be in grid");
-        steps += 1;
-    }
-    steps / 2
+    (all_points_in_loop(start, maze).len() / 2) as i32
 }
 
-pub fn count_enclosed_tiles(_maze: &HashMap<Point, Pipe>) -> i32 {
-    0
+pub fn count_enclosed_tiles(start: Point, maze: &HashMap<Point, Pipe>) -> u64 {
+    let mut points = all_points_in_loop(start, maze);
+
+    // Shoelace formula for calculating the area of a polygon
+    // https://en.wikipedia.org/wiki/Shoelace_formula
+    // Add the first point to the end of the points vector to create a closed loop
+    points.push(points[0]);
+    let mut sum = 0.0;
+    for i in 0..points.len() - 1 {
+        #[allow(clippy::cast_precision_loss)]
+        let (x1, y1) = (points[i].x as f64, points[i].y as f64);
+        #[allow(clippy::cast_precision_loss)]
+        let (x2, y2) = (points[i + 1].x as f64, points[i + 1].y as f64);
+
+        sum += x1 * y2 - x2 * y1;
+    }
+    let area = (sum / 2.0).abs();
+
+    // Pick's Theorem rearranged slightly so that we solve for the number of interior points given the area
+    // https://en.wikipedia.org/wiki/Pick%27s_theorem
+    #[allow(clippy::cast_precision_loss)]
+    let interior_area = (area - ((points.len() - 1) as f64) / 2.0 + 1.0) as u64;
+
+    interior_area
 }
 
 #[cfg(test)]
@@ -250,6 +308,34 @@ S┘.└┐
     }
 
     #[test]
+    #[ignore]
+    fn print_loop_only() {
+        let mut maze_1 = parse_maze(SAMPLE_1);
+        let mut maze_2 = parse_maze(SAMPLE_2);
+        let mut maze_3 = parse_maze(SAMPLE_3);
+        let mut maze_4 = parse_maze(SAMPLE_4);
+        let mut maze_5 = parse_maze(SAMPLE_5);
+        let mut maze_6 = parse_maze(SAMPLE_6);
+        let mut input = parse_maze(INPUT);
+
+        let printed_1 = only_loop_as_string(&mut maze_1.1, 5, 5, Point { x: 1, y: 1 });
+        let printed_2 = only_loop_as_string(&mut maze_2.1, 5, 5, Point { x: 0, y: 2 });
+        let printed_3 = only_loop_as_string(&mut maze_3.1, 11, 9, Point { x: 1, y: 1 });
+        let printed_4 = only_loop_as_string(&mut maze_4.1, 10, 9, Point { x: 1, y: 1 });
+        let printed_5 = only_loop_as_string(&mut maze_5.1, 20, 10, Point { x: 12, y: 4 });
+        let printed_6 = only_loop_as_string(&mut maze_6.1, 20, 10, Point { x: 4, y: 0 });
+        let printed_input = only_loop_as_string(&mut input.1, 140, 140, Point { x: 119, y: 72 });
+
+        println!("{}\n", &printed_1);
+        println!("{}\n", &printed_2);
+        println!("{}\n", &printed_3);
+        println!("{}\n", &printed_4);
+        println!("{}\n", &printed_5);
+        println!("{}\n", &printed_6);
+        println!("{}\n", &printed_input);
+    }
+
+    #[test]
     fn test_1_sample() {
         let (maze_1_start, maze_1) = parse_maze(SAMPLE_1);
         let (maze_2_start, maze_2) = parse_maze(SAMPLE_2);
@@ -266,24 +352,26 @@ S┘.└┐
     }
 
     #[test]
-    #[ignore]
     fn test_2_sample() {
+        let maze_1 = parse_maze(SAMPLE_1).1;
+        let maze_2 = parse_maze(SAMPLE_2).1;
         let maze_3 = parse_maze(SAMPLE_3).1;
         let maze_4 = parse_maze(SAMPLE_4).1;
         let maze_5 = parse_maze(SAMPLE_5).1;
         let maze_6 = parse_maze(SAMPLE_6).1;
 
-        assert_eq!(count_enclosed_tiles(&maze_3), 4);
-        assert_eq!(count_enclosed_tiles(&maze_4), 4);
-        assert_eq!(count_enclosed_tiles(&maze_5), 8);
-        assert_eq!(count_enclosed_tiles(&maze_6), 10);
+        assert_eq!(count_enclosed_tiles(Point { x: 1, y: 1 }, &maze_1), 1);
+        assert_eq!(count_enclosed_tiles(Point { x: 0, y: 2 }, &maze_2), 1);
+        assert_eq!(count_enclosed_tiles(Point { x: 1, y: 1 }, &maze_3), 4);
+        assert_eq!(count_enclosed_tiles(Point { x: 1, y: 1 }, &maze_4), 4);
+        assert_eq!(count_enclosed_tiles(Point { x: 12, y: 4 }, &maze_5), 8);
+        assert_eq!(count_enclosed_tiles(Point { x: 4, y: 0 }, &maze_6), 10);
     }
 
     #[test]
-    #[ignore]
     fn test_2() {
         let maze = parse_maze(INPUT).1;
 
-        assert_eq!(count_enclosed_tiles(&maze), 1);
+        assert_eq!(count_enclosed_tiles(Point { x: 119, y: 72 }, &maze), 467);
     }
 }
