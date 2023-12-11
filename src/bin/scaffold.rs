@@ -7,9 +7,9 @@ use clap::Parser;
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Opts {
-    start: i32,
-    end: i32,
     year: String,
+    start: i32,
+    end: Option<i32>,
 }
 
 fn main() {
@@ -28,7 +28,7 @@ fn main() {
         .or_else(|_| File::create(format!("{}/mod.rs", &src_directory)))
         .expect("Unable to open file");
 
-    for i in start..=end {
+    for i in start..=end.unwrap_or(start) {
         let day = format!("{i:02}");
         let file_name = format!("{src_directory}/_{day}.rs");
 

@@ -80,7 +80,7 @@ pub struct Point {
     y: u64,
 }
 pub fn manhattan_distance(a: Point, b: Point) -> u64 {
-    (a.x.abs_diff(b.x)) + a.y.abs_diff(b.y)
+    a.x.abs_diff(b.x) + a.y.abs_diff(b.y)
 }
 
 #[cfg(test)]
