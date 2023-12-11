@@ -198,30 +198,25 @@ pub fn furthest_point(start: Point, maze: &HashMap<Point, Pipe>) -> i32 {
     (all_points_in_loop(start, maze).len() / 2) as i32
 }
 
-pub fn count_enclosed_tiles(start: Point, maze: &HashMap<Point, Pipe>) -> u64 {
+pub fn count_enclosed_tiles(start: Point, maze: &HashMap<Point, Pipe>) -> i32 {
     let mut points = all_points_in_loop(start, maze);
 
     // Shoelace formula for calculating the area of a polygon
     // https://en.wikipedia.org/wiki/Shoelace_formula
     // Add the first point to the end of the points vector to create a closed loop
     points.push(points[0]);
-    let mut sum = 0.0;
+    let mut sum = 0i32;
     for i in 0..points.len() - 1 {
-        #[allow(clippy::cast_precision_loss)]
-        let (x1, y1) = (points[i].x as f64, points[i].y as f64);
-        #[allow(clippy::cast_precision_loss)]
-        let (x2, y2) = (points[i + 1].x as f64, points[i + 1].y as f64);
+        let (x1, y1) = (points[i].x as i32, points[i].y as i32);
+        let (x2, y2) = (points[i + 1].x as i32, points[i + 1].y as i32);
 
         sum += x1 * y2 - x2 * y1;
     }
-    let area = (sum / 2.0).abs();
+    let area = (sum / 2).abs();
 
     // Pick's Theorem rearranged slightly so that we solve for the number of interior points given the area
     // https://en.wikipedia.org/wiki/Pick%27s_theorem
-    #[allow(clippy::cast_precision_loss)]
-    let interior_area = (area - ((points.len() - 1) as f64) / 2.0 + 1.0) as u64;
-
-    interior_area
+    area - (points.len() as i32 - 1) / 2 + 1
 }
 
 #[cfg(test)]
