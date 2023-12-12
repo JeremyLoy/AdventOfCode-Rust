@@ -57,7 +57,7 @@ fn download_input() {
             }
 
             // Write the response bytes to a file
-            let mut file = std::fs::File::create(path).expect("should have created input file");
+            let mut file = File::create(path).expect("should have created input file");
             file.write_all(&resp.bytes().expect("there were bytes"))
                 .expect("should have written all of input");
             println!("Successfully created file");
@@ -72,14 +72,14 @@ fn scaffold_files() {
         start,
         end,
         year,
-        session,
+        session: _,
     } = Opts::parse();
 
     let src_directory = format!("src/_{year}");
     let input_directory = format!("input/{year}");
 
-    fs::create_dir_all(&src_directory).expect("Failed to create src directory");
-    fs::create_dir_all(&input_directory).expect("Failed to create input directory");
+    create_dir_all(&src_directory).expect("Failed to create src directory");
+    create_dir_all(&input_directory).expect("Failed to create input directory");
 
     let mut mod_file = OpenOptions::new()
         .write(true)
