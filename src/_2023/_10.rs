@@ -35,12 +35,12 @@ impl Display for Heading {
 impl Pipe {
     fn from_char(s: char) -> Result<Self, String> {
         Ok(match s {
-            '│' => Self::V,
-            '─' => Self::H,
-            '└' => Self::NE,
-            '┌' => Self::SE,
-            '┐' => Self::SW,
-            '┘' => Self::NW,
+            '│' | '|' => Self::V,
+            '─' | '-' => Self::H,
+            '└' | 'L' => Self::NE,
+            '┌' | 'F' => Self::SE,
+            '┐' | '7' => Self::SW,
+            '┘' | 'J' => Self::NW,
             '.' => Self::G,
             'S' => Self::S,
             e => return Err(format!("unknown char {e}")),

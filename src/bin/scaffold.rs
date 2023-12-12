@@ -1,19 +1,79 @@
 use std::fs;
-use std::fs::{File, OpenOptions};
+use std::fs::{create_dir_all, File, OpenOptions};
 use std::io::prelude::*;
+use std::path::Path;
 
 use clap::Parser;
+use reqwest::header::HeaderMap;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Opts {
     year: String,
     start: i32,
+    session: Option<String>,
     end: Option<i32>,
 }
 
 fn main() {
-    let Opts { start, end, year } = Opts::parse();
+    download_input();
+    scaffold_files();
+}
+
+fn download_input() {
+    let Opts {
+        start,
+        end,
+        year,
+        session,
+    } = Opts::parse();
+    let session = session.expect("session is required");
+
+    let get_input_file = |year: &str, day: i32| -> String { format!("input/{year}/{day:02}.txt") };
+
+    let get_url = |year: &str, day: i32| -> String {
+        format!("https://adventofcode.com/{year}/day/{day}/input")
+    };
+    // Send a GET request
+    let mut headers = HeaderMap::new();
+    headers.insert("Cookie", format!("session={session}").parse().unwrap());
+    let client = reqwest::blocking::Client::builder()
+        .default_headers(headers)
+        .build()
+        .expect("built a client");
+
+    for day in start..=end.unwrap_or(start) {
+        let url = get_url(&year, day);
+        let path = get_input_file(&year, day);
+
+        let resp = client.get(&url).send().expect("made a request");
+
+        // Check for status code 200
+        if resp.status().as_u16() == 200 {
+            // Ensure parent directory exists before writing
+            let output_path = Path::new(&path);
+            if let Some(dir) = output_path.parent() {
+                create_dir_all(dir).expect("should have created dir");
+            }
+
+            // Write the response bytes to a file
+            let mut file = std::fs::File::create(path).expect("should have created input file");
+            file.write_all(&resp.bytes().expect("there were bytes"))
+                .expect("should have written all of input");
+            println!("Successfully created file");
+        } else {
+            println!("Received response status: {}", resp.status());
+        }
+    }
+}
+
+fn scaffold_files() {
+    let Opts {
+        start,
+        end,
+        year,
+        session,
+    } = Opts::parse();
 
     let src_directory = format!("src/_{year}");
     let input_directory = format!("input/{year}");
