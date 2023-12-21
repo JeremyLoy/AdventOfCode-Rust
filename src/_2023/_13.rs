@@ -1,5 +1,4 @@
 use crate::_2023::_13::Reflection::Horizontal;
-use std::collections::HashMap;
 use std::str::FromStr;
 use Reflection::Vertical;
 
@@ -8,6 +7,7 @@ pub struct Valley {
     vert: Vec<String>,
 }
 
+#[derive(Eq, PartialEq)]
 pub enum Reflection {
     Horizontal(i32),
     Vertical(i32),
@@ -40,8 +40,52 @@ impl Valley {
 
         Vertical(0)
     }
+    fn invert_at(s: &str, index: usize) -> String {
+        let mut chars: Vec<_> = s.chars().collect();
+        if chars[index] == '.' {
+            chars[index] = '#';
+        } else if chars[index] == '#' {
+            chars[index] = '.';
+        }
+        chars.into_iter().collect()
+    }
+    pub fn smudged_line_of_reflection(&mut self) -> Reflection {
+        let original_line_of_reflection = self.line_of_reflection();
+        for y in 0..self.horiz.len() {
+            for x in 0..self.vert.len() {
+                self.horiz[y] = Self::invert_at(&self.horiz[y], x);
+                self.vert[x] = Self::invert_at(&self.vert[x], y);
+                for i in 0..self.horiz.len() - 1 {
+                    if Self::is_valid_line_of_reflection(i, &self.horiz)
+                        && original_line_of_reflection != Horizontal(i as i32 + 1)
+                    {
+                        return Horizontal(i as i32 + 1);
+                    }
+                }
+                for i in 0..self.vert.len() - 1 {
+                    if Self::is_valid_line_of_reflection(i, &self.vert)
+                        && original_line_of_reflection != Vertical(i as i32 + 1)
+                    {
+                        return Vertical(i as i32 + 1);
+                    }
+                }
+                self.horiz[y] = Self::invert_at(&self.horiz[y], x);
+                self.vert[x] = Self::invert_at(&self.vert[x], y);
+            }
+        }
+
+        Vertical(0)
+    }
+
     pub fn score(&self) -> i32 {
         match self.line_of_reflection() {
+            Vertical(i) => i,
+            Horizontal(i) => i * 100,
+        }
+    }
+
+    pub fn smudged_score(&mut self) -> i32 {
+        match self.smudged_line_of_reflection() {
             Vertical(i) => i,
             Horizontal(i) => i * 100,
         }
@@ -107,15 +151,21 @@ mod tests {
 
     #[test]
     fn test_2_sample() {
-        let input = parse(SAMPLE);
+        let mut input = parse(SAMPLE);
 
-        assert_eq!(input.iter().map(Valley::score).sum::<i32>(), 1 + 1);
+        assert_eq!(
+            input.iter_mut().map(Valley::smudged_score).sum::<i32>(),
+            400
+        );
     }
 
     #[test]
     fn test_2() {
-        let input = parse(INPUT);
+        let mut input = parse(INPUT);
 
-        assert_eq!(input.iter().map(Valley::score).sum::<i32>(), 1 + 1);
+        assert_eq!(
+            input.iter_mut().map(Valley::smudged_score).sum::<i32>(),
+            31_603
+        );
     }
 }
