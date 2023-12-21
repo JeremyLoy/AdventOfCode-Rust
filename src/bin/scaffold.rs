@@ -36,7 +36,12 @@ fn download_input() {
     };
     // Send a GET request
     let mut headers = HeaderMap::new();
-    headers.insert("Cookie", format!("session={session}").parse().unwrap());
+    headers.insert(
+        "Cookie",
+        format!("session={session}")
+            .parse()
+            .expect("unable to make header from session"),
+    );
     let client = reqwest::blocking::Client::builder()
         .default_headers(headers)
         .build()
@@ -46,10 +51,10 @@ fn download_input() {
         let url = get_url(&year, day);
         let path = get_input_file(&year, day);
 
-        let resp = client.get(&url).send().expect("made a request");
+        let mut resp = client.get(&url).send().expect("made a request");
 
         // Check for status code 200
-        if resp.status().as_u16() == 200 {
+        if resp.status().is_success() {
             // Ensure parent directory exists before writing
             let output_path = Path::new(&path);
             if let Some(dir) = output_path.parent() {
@@ -58,8 +63,7 @@ fn download_input() {
 
             // Write the response bytes to a file
             let mut file = File::create(path).expect("should have created input file");
-            file.write_all(&resp.bytes().expect("there were bytes"))
-                .expect("should have written all of input");
+            resp.copy_to(&mut file).expect("able to write to file");
             println!("Successfully created file");
         } else {
             println!("Received response status: {}", resp.status());
@@ -76,10 +80,8 @@ fn scaffold_files() {
     } = Opts::parse();
 
     let src_directory = format!("src/_{year}");
-    let input_directory = format!("input/{year}");
 
     create_dir_all(&src_directory).expect("Failed to create src directory");
-    create_dir_all(&input_directory).expect("Failed to create input directory");
 
     let mut mod_file = OpenOptions::new()
         .write(true)
@@ -91,9 +93,6 @@ fn scaffold_files() {
     for i in start..=end.unwrap_or(start) {
         let day = format!("{i:02}");
         let file_name = format!("{src_directory}/_{day}.rs");
-
-        File::create(format!("{}/{}.txt", &input_directory, &day))
-            .expect("unable to create input file");
 
         fs::write(
             &file_name,
