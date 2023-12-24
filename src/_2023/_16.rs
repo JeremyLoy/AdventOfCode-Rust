@@ -210,8 +210,6 @@ mod tests {
     fn test_1_sample() {
         let input = parse(SAMPLE);
 
-        println!("{input}");
-
         assert_eq!(input.count_energized(), 46);
     }
 
