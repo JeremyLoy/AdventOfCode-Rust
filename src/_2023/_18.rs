@@ -1,7 +1,8 @@
 use crate::_2023::_18::Direction::{D, L, R, U};
+use itertools::Itertools;
 use std::collections::HashSet;
 use std::error::Error;
-use std::ops::Add;
+use std::ops::{Add, Mul};
 use std::str::FromStr;
 
 #[derive(Copy, Clone)]
@@ -10,6 +11,31 @@ pub enum Direction {
     D,
     L,
     U,
+}
+
+impl Mul<u32> for Direction {
+    type Output = Point;
+
+    fn mul(self, amount: u32) -> Self::Output {
+        match self {
+            U => Point {
+                x: 0,
+                y: -(amount as i32),
+            },
+            D => Point {
+                x: 0,
+                y: amount as i32,
+            },
+            L => Point {
+                x: -(amount as i32),
+                y: 0,
+            },
+            R => Point {
+                x: amount as i32,
+                y: 0,
+            },
+        }
+    }
 }
 
 impl FromStr for Direction {
@@ -65,7 +91,15 @@ pub struct Point {
     x: i32,
     y: i32,
 }
-
+impl Add<Point> for Point {
+    type Output = Point;
+    fn add(self, rhs: Point) -> Self::Output {
+        Point {
+            x: self.x + rhs.x,
+            y: self.y + rhs.y,
+        }
+    }
+}
 impl Add<Direction> for Point {
     type Output = Point;
 
@@ -99,39 +133,33 @@ pub fn parse_swapped(input: &str) -> Vec<DigPlan> {
     input.lines().flat_map(DigPlan::parse_swapped).collect()
 }
 
-pub fn cubic_meters_of_laval(dig_plan: Vec<DigPlan>) -> i64 {
-    let mut perimeter: Vec<Point> = Vec::new();
-    let mut current = Point { x: 0, y: 0 };
-    perimeter.push(current);
-    for plan in dig_plan {
-        for _ in 0..plan.amount {
-            current = current + plan.direction;
-            perimeter.push(current);
-        }
-    }
-    // flood_fill(&mut perimeter, Point { x: 1, y: 1 });
-    // perimeter.len()
-    internal_area(&perimeter) + perimeter.len() as i64
+pub fn cubic_meters_of_laval(dig_plan: &[DigPlan]) -> i64 {
+    let area = dig_plan
+        .iter()
+        .scan(Point { x: 0, y: 0 }, |acc, plan| {
+            *acc = *acc + (plan.direction * plan.amount);
+            Some(*acc)
+        })
+        .tuple_windows()
+        .map(|(a, b)| {
+            let (x1, y1) = (i64::from(a.x), i64::from(a.y));
+            let (x2, y2) = (i64::from(b.x), i64::from(b.y));
+
+            x1 * y2 - x2 * y1
+        })
+        .sum::<i64>()
+        / 2;
+
+    let perimeter = dig_plan
+        .iter()
+        .map(|plan| i64::from(plan.amount))
+        .sum::<i64>();
+
+    area + (perimeter / 2) + 1
 }
 
-pub fn internal_area(perimeter: &[Point]) -> i64 {
-    // Shoelace formula for calculating the area of a polygon
-    // https://en.wikipedia.org/wiki/Shoelace_formula
-    let mut sum = 0i64;
-    for i in 0..perimeter.len() - 1 {
-        let (x1, y1) = (i64::from(perimeter[i].x), i64::from(perimeter[i].y));
-        let (x2, y2) = (i64::from(perimeter[i + 1].x), i64::from(perimeter[i + 1].y));
-
-        sum += x1 * y2 - x2 * y1;
-    }
-    let area = sum / 2;
-
-    // Pick's Theorem rearranged slightly so that we solve for the number of interior points given the area
-    // https://en.wikipedia.org/wiki/Pick%27s_theorem
-    area - (perimeter.len() as i64 - 1) / 2
-}
-
-// I'm not actually using this but I figured
+// I'm not actually using this but I did for part 1 so I kept it.
+// Given the billions of nodes its not feasible for pt 2 but it may come in handy later
 pub fn flood_fill(perimeter: &mut HashSet<Point>, start: Point) {
     // 4 directions: up, down, left, right
     let directions = [U, D, L, R];
@@ -172,27 +200,27 @@ U 2 (#7a21e3)";
     fn test_1_sample() {
         let dig_plan = parse(SAMPLE);
 
-        assert_eq!(cubic_meters_of_laval(dig_plan), 62);
+        assert_eq!(cubic_meters_of_laval(&dig_plan), 62);
     }
 
     #[test]
     fn test_1() {
         let dig_plan = parse(INPUT);
 
-        assert_eq!(cubic_meters_of_laval(dig_plan), 48_503);
+        assert_eq!(cubic_meters_of_laval(&dig_plan), 48_503);
     }
 
     #[test]
     fn test_2_sample() {
         let dig_plan = parse_swapped(SAMPLE);
 
-        assert_eq!(cubic_meters_of_laval(dig_plan), 952_408_144_115);
+        assert_eq!(cubic_meters_of_laval(&dig_plan), 952_408_144_115);
     }
 
     #[test]
     fn test_2() {
         let dig_plan = parse_swapped(INPUT);
 
-        assert_eq!(cubic_meters_of_laval(dig_plan), 148_442_153_147_147);
+        assert_eq!(cubic_meters_of_laval(&dig_plan), 148_442_153_147_147);
     }
 }
