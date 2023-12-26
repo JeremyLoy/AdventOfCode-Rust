@@ -150,12 +150,15 @@ pub fn cubic_meters_of_laval(dig_plan: &[DigPlan]) -> i64 {
         .sum::<i64>()
         / 2;
 
-    let perimeter = dig_plan
+    let perimeter_points = dig_plan
         .iter()
         .map(|plan| i64::from(plan.amount))
         .sum::<i64>();
 
-    area + (perimeter / 2) + 1
+    // Pick's Theorem again
+    let interior_points = area - (perimeter_points / 2) + 1;
+
+    interior_points + perimeter_points
 }
 
 // I'm not actually using this but I did for part 1 so I kept it.
