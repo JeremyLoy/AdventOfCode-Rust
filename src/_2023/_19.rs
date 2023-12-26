@@ -1,61 +1,59 @@
+use crate::_2023::_19::Rule::{Accept, Comparison, Destination, Reject};
+use itertools::Itertools;
 use std::collections::HashMap;
 use std::error::Error;
 use std::str::FromStr;
 
 pub struct System {
     workflows: HashMap<String, Vec<Rule>>,
-    parts: Vec<Part>,
+    parts: Vec<HashMap<char, i32>>,
 }
 
 impl System {
     pub fn process(&self) -> i32 {
-        let parts = self.parts.iter().filter(|part| self.process_part(part));
-        parts.map(Part::score).sum()
+        self.parts
+            .iter()
+            .filter(|part| self.process_part(part))
+            .map(|part| part.values().sum::<i32>())
+            .sum()
     }
-    pub fn process_part(&self, part: &Part) -> bool {
-        let gt = |a, b| a > b;
-        let lt = |a, b| a < b;
+    pub fn process_part(&self, part: &HashMap<char, i32>) -> bool {
         let mut cur = "in";
-        while cur != "A" && cur != "R" {
+        loop {
             let rules = self
                 .workflows
                 .get(cur)
                 .unwrap_or_else(|| panic!("workflow {cur} does not exist"));
             for rule in rules {
-                let op = if rule.condition == ">" { gt } else { lt };
-                match rule.rating.as_str() {
-                    "x" => {
-                        if op(part.x, rule.value) {
-                            cur = rule.destination.as_str();
-                            break;
+                match rule {
+                    Accept => return true,
+                    Reject => return false,
+                    Destination(destination) => {
+                        cur = destination.as_str();
+                        break;
+                    }
+                    Comparison {
+                        rating,
+                        condition,
+                        value,
+                        destination,
+                    } => {
+                        let gt = |a, b| a > b;
+                        let lt = |a, b| a < b;
+                        let op = if condition == ">" { gt } else { lt };
+                        if let Some(part_value) = part.get(rating) {
+                            if op(*part_value, *value) {
+                                match destination.as_str() {
+                                    "A" => return true,
+                                    "R" => return false,
+                                    _ => cur = destination.as_str(),
+                                };
+                                break;
+                            }
                         }
                     }
-                    "m" => {
-                        if op(part.m, rule.value) {
-                            cur = rule.destination.as_str();
-                            break;
-                        }
-                    }
-                    "a" => {
-                        if op(part.a, rule.value) {
-                            cur = rule.destination.as_str();
-                            break;
-                        }
-                    }
-                    "s" => {
-                        if op(part.s, rule.value) {
-                            cur = rule.destination.as_str();
-                            break;
-                        }
-                    }
-                    _ => cur = rule.destination.as_str(),
                 }
             }
-        }
-        match cur {
-            "A" => true,
-            "R" => false,
-            _ => panic!("somehow broke out of process_part without accept or rejection"),
         }
     }
 }
@@ -82,11 +80,17 @@ impl FromStr for Workflow {
         })
     }
 }
-pub struct Rule {
-    rating: String,
-    condition: String,
-    value: i32,
-    destination: String,
+
+pub enum Rule {
+    Comparison {
+        rating: char,
+        condition: String,
+        value: i32,
+        destination: String,
+    },
+    Destination(String),
+    Accept,
+    Reject,
 }
 
 impl FromStr for Rule {
@@ -97,58 +101,35 @@ impl FromStr for Rule {
             let (value, destination) = s[2..]
                 .split_once(':')
                 .ok_or(format!("unable to split {s} into amount and destination"))?;
-            Ok(Rule {
-                rating: s[0..=0].to_string(),
+            Ok(Comparison {
+                rating: s.chars().next().expect("string should not be empty"),
                 condition: s[1..=1].to_string(),
                 value: value.parse()?,
                 destination: destination.to_string(),
             })
         } else {
-            Ok(Rule {
-                rating: String::default(),
-                condition: String::default(),
-                value: 0,
-                destination: s.to_string(),
+            Ok(match s {
+                "A" => Accept,
+                "R" => Reject,
+                _ => Destination(s.to_string()),
             })
         }
     }
 }
 
-pub struct Part {
-    x: i32,
-    m: i32,
-    a: i32,
-    s: i32,
-}
-
-impl Part {
-    pub fn score(&self) -> i32 {
-        self.x + self.m + self.a + self.s
-    }
-}
-
-impl FromStr for Part {
-    type Err = Box<dyn Error>;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let parts = s
-            .trim_start_matches('{')
-            .trim_end_matches('}')
-            .split(',')
-            .map(|s| &s[2..])
-            .map(str::parse)
-            .collect::<Result<Vec<_>, _>>()?;
-        if parts.len() != 4 {
-            return Err(format!("unexpected number of parts {}", parts.len()).into());
-        }
-        Ok(Part {
-            x: parts[0],
-            m: parts[1],
-            a: parts[2],
-            s: parts[3],
+fn parse_parts(s: &str) -> Result<HashMap<char, i32>, Box<dyn Error>> {
+    s.trim_start_matches('{')
+        .trim_end_matches('}')
+        .split(',')
+        .map(|s| s.split_once('=').ok_or("ratings must be splittable"))
+        .map_ok(|(key, value)| {
+            let value = value.parse::<i32>()?;
+            Ok((key.chars().next().unwrap_or_default(), value))
         })
-    }
+        .flatten()
+        .collect()
 }
+
 impl FromStr for System {
     type Err = Box<dyn Error>;
 
@@ -156,16 +137,15 @@ impl FromStr for System {
         let (workflows, parts) = input
             .split_once("\n\n")
             .ok_or("could not split workflows and parts")?;
-        let workflow_lines = workflows.lines();
-        let mut workflows = HashMap::new();
-        for workflow in workflow_lines {
-            let workflow: Workflow = workflow.parse()?;
-            workflows.insert(workflow.key, workflow.rules);
-        }
-        let parts = parts
+        let workflows = workflows
             .lines()
             .map(str::parse)
-            .collect::<Result<Vec<Part>, _>>()?;
+            .map_ok(|workflow: Workflow| (workflow.key, workflow.rules))
+            .collect::<Result<_, _>>()?;
+        let parts = parts
+            .lines()
+            .map(parse_parts)
+            .collect::<Result<Vec<_>, _>>()?;
         Ok(System { workflows, parts })
     }
 }
