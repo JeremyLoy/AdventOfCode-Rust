@@ -41,15 +41,16 @@ impl System {
                         let gt = |a, b| a > b;
                         let lt = |a, b| a < b;
                         let op = if condition == ">" { gt } else { lt };
-                        if let Some(part_value) = part.get(rating) {
-                            if op(*part_value, *value) {
-                                match destination.as_str() {
-                                    "A" => return true,
-                                    "R" => return false,
-                                    _ => cur = destination.as_str(),
-                                };
-                                break;
-                            }
+                        let part_value = part
+                            .get(rating)
+                            .unwrap_or_else(|| panic!("rating {rating} is not in xmas"));
+                        if op(*part_value, *value) {
+                            match destination.as_str() {
+                                "A" => return true,
+                                "R" => return false,
+                                _ => cur = destination.as_str(),
+                            };
+                            break;
                         }
                     }
                 }
