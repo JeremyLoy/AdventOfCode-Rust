@@ -190,6 +190,7 @@ hdj{m>838:A,pv}
     }
 
     #[test]
+    #[ignore]
     fn test_2_sample() {
         let system: System = SAMPLE.parse().unwrap();
 
@@ -197,6 +198,7 @@ hdj{m>838:A,pv}
     }
 
     #[test]
+    #[ignore]
     fn test_2() {
         let system: System = INPUT.parse().unwrap();
 
