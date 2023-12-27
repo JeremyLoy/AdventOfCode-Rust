@@ -1,13 +1,10 @@
-use crate::_2023::_20::Module::{Broadcaster, Conjunction, FlipFlop};
-use crate::_2023::_20::Power::Off;
-use crate::_2023::_20::Pulse::Low;
 use itertools::Itertools;
 use std::cell::RefCell;
 use std::collections::{HashMap, VecDeque};
 use std::rc::Rc;
 use std::str::FromStr;
-use Power::On;
-use Pulse::High;
+use Module::{Broadcaster, Conjunction, FlipFlop};
+use Pulse::{High, Low};
 
 #[derive(Copy, Clone, Eq, PartialEq)]
 pub enum Pulse {
@@ -51,7 +48,7 @@ impl FromStr for Machine {
                 } else {
                     let mut chars = module.chars();
                     let module = match chars.next() {
-                        Some('%') => FlipFlop(Off),
+                        Some('%') => FlipFlop(Power::Off),
                         Some('&') => Conjunction(Rc::new(RefCell::new(HashMap::new()))),
                         _ => return Err(format!("{module} is not a valid module")),
                     };
@@ -142,16 +139,16 @@ impl Machine {
             }
             if let Some((module, destinations)) = map.get_mut(&dest) {
                 match (module, signal) {
-                    (m @ FlipFlop(Off), Low) => {
-                        *m = FlipFlop(On);
+                    (m @ FlipFlop(Power::Off), Low) => {
+                        *m = FlipFlop(Power::On);
                         queue.extend(
                             destinations
                                 .iter()
                                 .map(|n| (dest.clone(), High, n.to_string())),
                         );
                     }
-                    (m @ FlipFlop(On), Low) => {
-                        *m = FlipFlop(Off);
+                    (m @ FlipFlop(Power::On), Low) => {
+                        *m = FlipFlop(Power::Off);
                         queue.extend(
                             destinations
                                 .iter()
