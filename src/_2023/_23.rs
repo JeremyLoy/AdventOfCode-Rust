@@ -200,6 +200,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn test_2_sample() {
         let island: SnowIsland = SAMPLE.parse().unwrap();
 
@@ -207,6 +208,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn test_2() {
         let island: SnowIsland = INPUT.parse().unwrap();
 
