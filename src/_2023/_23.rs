@@ -1,37 +1,5 @@
-use crate::_2023::_23::SlopeDirection::{Down, Left, Right, Up};
-use crate::_2023::_23::Tile::{Forest, Path, Slope};
 use std::collections::{HashMap, HashSet, VecDeque};
-use std::fmt::{Display, Formatter, Write};
 use std::str::FromStr;
-
-pub enum Tile {
-    Path,
-    Forest,
-    Slope(SlopeDirection),
-}
-
-impl Display for Tile {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Path => f.write_char('.')?,
-            Forest => f.write_char('#')?,
-            Slope(s) => match s {
-                Up => f.write_char('^')?,
-                Down => f.write_char('v')?,
-                Left => f.write_char('<')?,
-                Right => f.write_char('>')?,
-            },
-        };
-        Ok(())
-    }
-}
-
-pub enum SlopeDirection {
-    Up,
-    Down,
-    Left,
-    Right,
-}
 
 #[derive(Copy, Clone, Eq, PartialEq, Hash)]
 pub struct Point {
@@ -63,7 +31,7 @@ impl Point {
 }
 
 pub struct SnowIsland {
-    grid: HashMap<Point, Tile>,
+    grid: HashMap<Point, char>,
     height: i32,
     width: i32,
 }
@@ -81,24 +49,16 @@ impl FromStr for SnowIsland {
                 height = height.max(y as i32 + 1);
                 width = width.max(line.len() as i32);
                 line.chars().enumerate().map(move |(x, c)| {
-                    Ok((
+                    (
                         Point {
                             x: x as i32,
                             y: y as i32,
                         },
-                        match c {
-                            '#' => Forest,
-                            '.' => Path,
-                            '>' => Slope(Right),
-                            '<' => Slope(Left),
-                            '^' => Slope(Up),
-                            'v' => Slope(Down),
-                            _ => return Err(format!("{c} is not a valid Tile")),
-                        },
-                    ))
+                        c,
+                    )
                 })
             })
-            .collect::<Result<HashMap<_, _>, _>>()?;
+            .collect::<HashMap<_, _>>();
 
         Ok(SnowIsland {
             grid,
@@ -166,28 +126,28 @@ impl SnowIsland {
         let mut neighbors = Vec::new();
         for neighbor in point.neighbors() {
             match self.grid.get(&neighbor) {
-                Some(Path) => neighbors.push(neighbor),
-                Some(Slope(Right)) => {
+                Some('.') => neighbors.push(neighbor),
+                Some('>') => {
                     if neighbor.x == point.x + 1 {
                         neighbors.push(neighbor);
                     }
                 }
-                Some(Slope(Left)) => {
+                Some('<') => {
                     if neighbor.x == point.x - 1 {
                         neighbors.push(neighbor);
                     }
                 }
-                Some(Slope(Down)) => {
+                Some('v') => {
                     if neighbor.y == point.y + 1 {
                         neighbors.push(neighbor);
                     }
                 }
-                Some(Slope(Up)) => {
+                Some('^') => {
                     if neighbor.y == point.y - 1 {
                         neighbors.push(neighbor);
                     }
                 }
-                Some(Forest) | None => (),
+                Some('#' | _) | None => (),
             }
         }
 
