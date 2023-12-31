@@ -1,6 +1,6 @@
 use crate::_2023::_23::SlopeDirection::{Down, Left, Right, Up};
 use crate::_2023::_23::Tile::{Forest, Path, Slope};
-use std::collections::{HashMap, HashSet};
+use std::collections::{HashMap, HashSet, VecDeque};
 use std::fmt::{Display, Formatter, Write};
 use std::str::FromStr;
 
@@ -118,55 +118,49 @@ impl SnowIsland {
             x: self.width - 2,
             y: self.height - 1,
         };
-        let mut visited = HashSet::new();
-        let mut path = Vec::new();
-        path.push(start);
 
-        let path = self
-            .dfs(start, goal, &mut visited, &mut path)
-            .into_iter()
-            .collect::<HashSet<_>>();
+        let path = self.dfs(start, goal).into_iter().collect::<HashSet<_>>();
 
-        for y in 0..self.height {
-            for x in 0..self.width {
-                let point = &Point { x, y };
-                if path.contains(point) {
-                    print!("O");
-                } else {
-                    print!("{}", self.grid.get(point).unwrap());
-                }
-            }
-            println!();
-        }
+        // for y in 0..self.height {
+        //     for x in 0..self.width {
+        //         let point = &Point { x, y };
+        //         if path.contains(point) {
+        //             print!("O");
+        //         } else {
+        //             print!("{}", self.grid.get(point).unwrap());
+        //         }
+        //     }
+        //     println!();
+        // }
 
         // start doesn't count as taking a step
         path.len() - 1
     }
-    fn dfs(
-        &self,
-        current: Point,
-        goal: Point,
-        visited: &mut HashSet<Point>,
-        path: &mut Vec<Point>,
-    ) -> Vec<Point> {
-        if current == goal {
-            return path.clone();
-        }
-        let mut longest = Vec::new();
-        visited.insert(current);
-        let valid_neighbors = self.valid_neighbors(current);
-        for neighbor in valid_neighbors {
-            if !visited.contains(&neighbor) {
-                path.push(neighbor);
-                let temp = self.dfs(neighbor, goal, visited, path);
-                if temp.len() > longest.len() {
-                    longest = temp;
-                }
-                path.pop();
+    fn dfs(&self, start: Point, goal: Point) -> Vec<Point> {
+        let mut path_stack = VecDeque::new();
+        let mut visited = HashSet::new();
+        let mut longest_path = Vec::new();
+
+        path_stack.push_back(vec![start]);
+
+        while let Some(path) = path_stack.pop_front() {
+            let current = *path.last().expect("no path should be empty");
+
+            if !visited.insert(current) {
+                continue;
+            }
+
+            if current == goal && path.len() > longest_path.len() {
+                longest_path = path.clone();
+            }
+
+            for neighbor in self.valid_neighbors(current) {
+                let mut new_path = path.clone();
+                new_path.push(neighbor);
+                path_stack.push_front(new_path);
             }
         }
-        visited.remove(&current);
-        longest
+        longest_path
     }
     fn valid_neighbors(&self, point: Point) -> Vec<Point> {
         let mut neighbors = Vec::new();
