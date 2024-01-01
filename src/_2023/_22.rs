@@ -1,6 +1,6 @@
 use itertools::Itertools;
-use std::collections::{HashMap, HashSet};
-use std::hash::{Hash, Hasher};
+use std::collections::HashMap;
+use std::hash::Hash;
 
 pub struct Space {
     bricks: Vec<Brick>,
@@ -8,160 +8,97 @@ pub struct Space {
 
 impl Space {
     pub fn settle(&mut self) {
-        let mut ret = vec![];
+        let mut ret: Vec<Brick> = vec![];
         for brick in &self.bricks {
-            let mut current = brick.clone();
+            let mut current = *brick;
             let mut is_settled = false;
             while !is_settled {
-                let supporters = self
-                    .bricks
+                let supporters = ret
                     .iter()
-                    .filter(|supporter| brick.is_supported_by(supporter))
+                    .filter(|supporter| supporter.supports(&current))
                     .collect::<Vec<_>>();
                 if supporters.is_empty() && !current.on_ground() {
-                    let next_highest = self
-                        .bricks
+                    let next_highest = ret
                         .iter()
                         .filter(|b| b.end.z < current.start.z - 1)
                         .map(|b| b.end.z)
                         .max()
-                        .unwrap_or(1);
-                    // shift to ground
-                    // for supporter in supporters {
+                        .map_or(1, |it| it + 1);
+
                     current = fall_down(&current, next_highest);
-                    // shift_down(brick, supporter);
-                    // }
-                    // fall to ground
-                    // brick.start.z = 1;
                 } else {
                     is_settled = true;
-                    ret.push(current.clone());
+                    ret.push(current);
                 }
             }
         }
         self.bricks = ret;
     }
     pub fn disintegrateable_bricks(&self) -> usize {
-        let bricks_by_bottom_z = self
-            .bricks
-            .iter()
-            .group_by(|brick| brick.start.z)
-            .into_iter()
-            .map(|(ge0, group)| (ge0, group.cloned().collect()))
-            .collect::<HashMap<u32, Vec<Brick>>>();
-        let bricks_by_top_z = self
-            .bricks
-            .iter()
-            .group_by(|brick| brick.end.z)
-            .into_iter()
-            .map(|(ge0, group)| (ge0, group.cloned().collect()))
-            .collect::<HashMap<u32, Vec<Brick>>>();
-
-        let below_to_above = self
-            .bricks
-            .iter()
-            .map(|brick| {
-                if let Some(above) = bricks_by_bottom_z.get(&(brick.end.z + 1)) {
-                    (
-                        brick.clone(),
-                        above
-                            .iter()
-                            .filter(|a| brick.supports(a))
-                            .cloned()
-                            .collect(),
-                    )
-                } else {
-                    (brick.clone(), vec![])
+        let mut supports: HashMap<Brick, Vec<Brick>> = HashMap::new();
+        let mut supported_by: HashMap<Brick, Vec<Brick>> = HashMap::new();
+        for a in &self.bricks {
+            for b in &self.bricks {
+                if a.supports(b) {
+                    supports.entry(*a).or_default().push(*b);
+                } else if a.is_supported_by(b) {
+                    supported_by.entry(*a).or_default().push(*b);
                 }
-            })
-            .collect::<HashMap<Brick, Vec<Brick>>>();
-        let above_to_below = self
-            .bricks
-            .iter()
-            .map(|brick| {
-                if let Some(below) = bricks_by_top_z.get(&(brick.start.z - 1)) {
-                    (
-                        brick.clone(),
-                        below
-                            .iter()
-                            .filter(|a| brick.is_supported_by(a))
-                            .cloned()
-                            .collect(),
-                    )
-                } else {
-                    (brick.clone(), vec![])
-                }
-            })
-            .collect::<HashMap<Brick, Vec<Brick>>>();
+            }
+        }
 
-        let sole_supporters = self
+        let mut sole_supporters = self
             .bricks
             .iter()
             .filter(|brick| {
-                if let Some(above) = below_to_above.get(brick) {
-                    above
-                        .iter()
-                        .any(|above| above_to_below.get(above).unwrap().len() == 1)
-                } else {
-                    false
-                }
+                let Some(supported) = supports.get(brick) else {
+                    return false;
+                };
+                supported
+                    .iter()
+                    .any(|above| supported_by.get(above).unwrap().len() == 1)
             })
             .collect::<Vec<_>>();
+        sole_supporters.sort_by_key(|b| b.id);
         self.bricks.len() - sole_supporters.len()
     }
 }
-#[derive(Copy, Clone, Eq, PartialEq, Hash)]
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
 pub struct Point3D {
     x: u32,
     y: u32,
     z: u32,
 }
 
-#[derive(Clone, Eq, PartialEq)]
+#[derive(Copy, Clone, Eq, PartialEq, Debug, Hash)]
 pub struct Brick {
     id: usize,
     start: Point3D,
     end: Point3D,
-    face: HashSet<(u32, u32)>,
-}
-
-impl Hash for Brick {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        self.id.hash(state);
-    }
 }
 
 impl Brick {
     fn supports(&self, above: &Brick) -> bool {
-        above.is_supported_by(self)
+        self.covers(above) && self.end.z + 1 == above.start.z
     }
     fn is_supported_by(&self, below: &Brick) -> bool {
-        self.is_directly_above(below) && self.covers(below)
+        below.covers(self) && self.start.z == below.end.z + 1
     }
-    fn is_directly_above(&self, below: &Brick) -> bool {
-        self.start.z == below.end.z + 1
-    }
-    fn covers(&self, below: &Brick) -> bool {
-        self.face.intersection(&below.face).next().is_some()
+    fn covers(&self, above: &Brick) -> bool {
+        self.start.x <= above.end.x
+            && self.end.x >= above.start.x
+            && self.start.y <= above.end.y
+            && self.end.y >= above.start.y
     }
     fn on_ground(&self) -> bool {
         self.start.z == 1
     }
 }
 fn fall_down(a: &Brick, z: u32) -> Brick {
-    let mut next = a.clone();
+    let mut next = *a;
     next.start.z = z;
     next.end.z = z + (a.end.z - a.start.z);
     next
-}
-fn get_face(start: Point3D, end: Point3D) -> HashSet<(u32, u32)> {
-    let mut set = HashSet::new();
-    for x in start.x..=end.x {
-        for y in start.y..=end.y {
-            set.insert((x, y));
-        }
-    }
-    set
 }
 
 pub fn parse(input: &str) -> Space {
@@ -187,7 +124,7 @@ pub fn parse(input: &str) -> Space {
                         id,
                         start,
                         end,
-                        face: get_face(start, end),
+                        // face: get_face(start, end),
                     })
                     .unwrap()
             })
@@ -219,7 +156,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn test_1() {
         let mut space = parse(INPUT);
         space.settle();
