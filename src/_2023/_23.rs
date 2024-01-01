@@ -98,7 +98,7 @@ impl SnowIsland {
     }
     fn dfs(&self, start: Point, goal: Point) -> Vec<Point> {
         let mut path_stack = VecDeque::new();
-        let mut solution_paths = Vec::new();
+        let mut longest_path = Vec::new();
 
         path_stack.push_front((vec![start], HashSet::new()));
 
@@ -106,7 +106,9 @@ impl SnowIsland {
             let current = *path.last().expect("no path should be empty");
 
             if current == goal {
-                solution_paths.push(path);
+                if path.len() > longest_path.len() {
+                    longest_path = path;
+                }
                 continue;
             }
 
@@ -119,9 +121,12 @@ impl SnowIsland {
 
             // Optimization - only clone path + visited if there is a branch in the path
             // if there is only one option, mutate in place
-            let first_neighbor = valid_neighbors
-                .next()
-                .expect("there should always be one neighbor");
+            // For pt1, there is always at least 1 neighbor because the graph is directed
+            // For Pt 2, this check is necessary because the lack of slopes introduce cycles
+            let Some(first_neighbor) = valid_neighbors.next() else {
+                continue;
+            };
+
             // iterator is empty if there is only one neighbor, which is most of the time
             for neighbor in valid_neighbors {
                 let mut new_path = path.clone();
@@ -131,7 +136,7 @@ impl SnowIsland {
             path.push(first_neighbor);
             path_stack.push_front((path, visited));
         }
-        solution_paths.into_iter().max_by_key(Vec::len).unwrap()
+        longest_path
     }
     fn valid_neighbors(&self, point: Point) -> Vec<Point> {
         let mut neighbors = Vec::new();
@@ -215,7 +220,7 @@ mod tests {
     fn test_2_sample() {
         let island: SnowIsland = SAMPLE.parse().unwrap();
 
-        assert_eq!(island.longest_climbing_path(), 154);
+        assert_eq!(island.longest_path(), 154);
     }
 
     #[test]
@@ -223,6 +228,6 @@ mod tests {
     fn test_2() {
         let island: SnowIsland = INPUT.parse().unwrap();
 
-        assert_eq!(island.longest_climbing_path(), 1 + 1);
+        assert_eq!(island.longest_path(), 1 + 1);
     }
 }
