@@ -98,29 +98,40 @@ impl SnowIsland {
     }
     fn dfs(&self, start: Point, goal: Point) -> Vec<Point> {
         let mut path_stack = VecDeque::new();
-        let mut visited = HashSet::new();
-        let mut longest_path = Vec::new();
+        let mut solution_paths = Vec::new();
 
-        path_stack.push_back(vec![start]);
+        path_stack.push_front((vec![start], HashSet::new()));
 
-        while let Some(path) = path_stack.pop_front() {
+        while let Some((mut path, mut visited)) = path_stack.pop_front() {
             let current = *path.last().expect("no path should be empty");
 
-            if !visited.insert(current) {
+            if current == goal {
+                solution_paths.push(path);
                 continue;
             }
 
-            if current == goal && path.len() > longest_path.len() {
-                longest_path = path.clone();
-            }
+            visited.insert(current);
 
-            for neighbor in self.valid_neighbors(current) {
+            let mut valid_neighbors = self
+                .valid_neighbors(current)
+                .into_iter()
+                .filter(|neighbor| !visited.contains(neighbor));
+
+            // Optimization - only clone path + visited if there is a branch in the path
+            // if there is only one option, mutate in place
+            let first_neighbor = valid_neighbors
+                .next()
+                .expect("there should always be one neighbor");
+            // iterator is empty if there is only one neighbor, which is most of the time
+            for neighbor in valid_neighbors {
                 let mut new_path = path.clone();
                 new_path.push(neighbor);
-                path_stack.push_front(new_path);
+                path_stack.push_front((new_path, visited.clone()));
             }
+            path.push(first_neighbor);
+            path_stack.push_front((path, visited));
         }
-        longest_path
+        solution_paths.into_iter().max_by_key(Vec::len).unwrap()
     }
     fn valid_neighbors(&self, point: Point) -> Vec<Point> {
         let mut neighbors = Vec::new();
