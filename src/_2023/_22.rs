@@ -1,5 +1,5 @@
 use itertools::Itertools;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::hash::Hash;
 
 pub struct Space {
@@ -34,7 +34,8 @@ impl Space {
         }
         self.bricks = ret;
     }
-    pub fn disintegrateable_bricks(&self) -> usize {
+
+    fn gen_lookups(&self) -> (HashMap<Brick, Vec<Brick>>, HashMap<Brick, Vec<Brick>>) {
         let mut supports: HashMap<Brick, Vec<Brick>> = HashMap::new();
         let mut supported_by: HashMap<Brick, Vec<Brick>> = HashMap::new();
         for a in &self.bricks {
@@ -46,9 +47,19 @@ impl Space {
                 }
             }
         }
+        (supports, supported_by)
+    }
+    pub fn disintegrateable_bricks(&self) -> usize {
+        let (supports, supported_by) = self.gen_lookups();
+        self.bricks.len() - self.sole_supporters(&supports, &supported_by).len()
+    }
 
-        let mut sole_supporters = self
-            .bricks
+    pub fn sole_supporters(
+        &self,
+        supports: &HashMap<Brick, Vec<Brick>>,
+        supported_by: &HashMap<Brick, Vec<Brick>>,
+    ) -> Vec<Brick> {
+        self.bricks
             .iter()
             .filter(|brick| {
                 let Some(supported) = supports.get(brick) else {
@@ -58,9 +69,48 @@ impl Space {
                     .iter()
                     .any(|above| supported_by.get(above).unwrap().len() == 1)
             })
-            .collect::<Vec<_>>();
-        sole_supporters.sort_by_key(|b| b.id);
-        self.bricks.len() - sole_supporters.len()
+            .copied()
+            .collect::<Vec<_>>()
+    }
+
+    pub fn chain_reaction_bricks(&self) -> usize {
+        let (supports, supported_by) = self.gen_lookups();
+        let sole_supporters = self.sole_supporters(&supports, &supported_by);
+
+        let mut total_count = 0;
+
+        for brick in sole_supporters {
+            let mut untoppled = self
+                .bricks
+                .iter()
+                .filter(|b| **b != brick)
+                .copied()
+                .collect::<HashSet<_>>();
+            let mut toppled: HashSet<Brick> = HashSet::from_iter(vec![brick]);
+            loop {
+                let will_fall = untoppled
+                    .iter()
+                    .filter(|b| supported_by.get(b).is_some_and(|s| !s.is_empty()))
+                    .filter(|b| {
+                        supported_by
+                            .get(b)
+                            .unwrap()
+                            .iter()
+                            .all(|b| toppled.contains(b))
+                    })
+                    .copied()
+                    .collect::<Vec<_>>();
+                for b in &will_fall {
+                    untoppled.remove(b);
+                    toppled.insert(*b);
+                }
+                if will_fall.is_empty() {
+                    break;
+                }
+            }
+            total_count += toppled.len() - 1;
+        }
+        total_count
     }
 }
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
@@ -164,20 +214,18 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn test_2_sample() {
         let mut space = parse(SAMPLE);
         space.settle();
 
-        assert_eq!(space.disintegrateable_bricks(), 7);
+        assert_eq!(space.chain_reaction_bricks(), 7);
     }
 
     #[test]
-    #[ignore]
     fn test_2() {
         let mut space = parse(INPUT);
         space.settle();
 
-        assert_eq!(space.disintegrateable_bricks(), 74_074);
+        assert_eq!(space.chain_reaction_bricks(), 74_074);
     }
 }
