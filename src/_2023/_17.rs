@@ -260,8 +260,6 @@ mod tests {
     fn test_1_sample() {
         let input = parse(SAMPLE);
 
-        println!("{input}");
-
         assert_eq!(input.min_heat_loss(), 102);
     }
 
