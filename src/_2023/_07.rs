@@ -70,7 +70,7 @@ impl Hand {
 
         let mut count_by_card = HashMap::new();
         for card in cards.as_slice() {
-            *count_by_card.entry(card).or_insert(0) += 1;
+            *count_by_card.entry(card).or_default() += 1;
         }
 
         let joker_count = count_by_card.remove(&Joker).unwrap_or(0);

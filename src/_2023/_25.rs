@@ -121,18 +121,14 @@ impl FromStr for WiringDiagram {
                 return Err("unable to split components");
             };
             for value in values.split_whitespace() {
-                if let Some(entry) = graph.get_mut(key) {
-                    entry.push(value.to_string());
-                } else {
-                    let edges = vec![value.to_string()];
-                    graph.insert(key.to_string(), edges);
-                }
-                if let Some(entry) = graph.get_mut(value) {
-                    entry.push(key.to_string());
-                } else {
-                    let edges = vec![key.to_string()];
-                    graph.insert(value.to_string(), edges);
-                }
+                graph
+                    .entry(key.to_string())
+                    .or_default()
+                    .push(value.to_string());
+                graph
+                    .entry(value.to_string())
+                    .or_default()
+                    .push(key.to_string());
             }
         }
 

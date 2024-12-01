@@ -23,8 +23,8 @@ pub enum Module {
 }
 
 pub struct Machine(
-    HashMap<String, (Module, Vec<String>)>,
-    Vec<(String, Pulse, String)>,
+    pub HashMap<String, (Module, Vec<String>)>,
+    pub Vec<(String, Pulse, String)>,
 );
 
 impl FromStr for Machine {
