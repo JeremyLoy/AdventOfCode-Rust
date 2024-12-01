@@ -107,7 +107,7 @@ pub fn sum_of_distances((left, right): &(Vec<i32>, Vec<i32>)) -> i32 {
 /// let left = vec![3, 4, 2];
 /// let right = vec![4, 3, 5, 3, 9, 3];
 /// let result = similarity_score(&(left, right));
-/// assert_eq!(result, 31);
+/// assert_eq!(result, 13);
 /// ```
 pub fn similarity_score((left, right): &(Vec<i32>, Vec<i32>)) -> i32 {
     let frequency_map =

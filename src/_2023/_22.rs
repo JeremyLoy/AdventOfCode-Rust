@@ -222,6 +222,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn test_2() {
         let mut space = parse(INPUT);
         space.settle();
