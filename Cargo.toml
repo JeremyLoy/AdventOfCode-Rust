@@ -7,10 +7,11 @@ edition = "2021"
 
 [dependencies]
 clap = { version = "4.4.8", features = ["derive"] }
-itertools = "0.12.0"
-rayon = "1.8.0"
-reqwest = { version = "0.11.22", features = ["blocking"] }
+itertools = "0.13.0"
+rayon = "1.10.0"
+reqwest = { version = "0.12.9", features = ["blocking"] }
 rand = "0.8.5"
+anyhow = "1.0.93"
 
 [dev-dependencies]
-pretty_assertions = "1.4.0"
+pretty_assertions = "1.4.1"

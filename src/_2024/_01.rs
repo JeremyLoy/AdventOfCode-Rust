@@ -1,3 +1,5 @@
+use anyhow::{anyhow, Result};
+use itertools::Itertools;
 /// Parses the input string, which is expected to contain lines of two integers
 /// separated by whitespace. Each integer on a line represents a number in one
 /// of two columns. The function returns a result containing a tuple of vectors
@@ -12,9 +14,9 @@
 ///
 /// * `Ok((Vec<i32>, Vec<i32>))` - A tuple containing two vectors of integers.
 ///   The first vector contains the numbers from the left column and the second
-///   vector contains the numbers from the right column.
+///   vector contains the numbers from the right column, sorted in ascending order.
 ///
-/// * `Err(Box<dyn std::error::Error>)` - An error if any parsing operation fails.
+/// * `Err(anyhow::Error)` - An error if any parsing operation fails.
 ///
 /// # Errors
 ///
@@ -25,22 +27,26 @@
 /// # Examples
 ///
 /// ```
+/// use anyhow::Result;
 /// use advent_of_code_rust::_2024::_01::parse;
 /// let input = "1 2\n3 4\n5 6";
 /// let result = parse(input).unwrap();
 /// assert_eq!(result, (vec![1, 3, 5], vec![2, 4, 6]));
 /// ```
-pub fn parse(input: &str) -> Result<(Vec<i32>, Vec<i32>), Box<dyn std::error::Error>> {
-    let (mut left_column, mut right_column) = (Vec::new(), Vec::new());
+pub fn parse(input: &str) -> Result<(Vec<i32>, Vec<i32>)> {
+    let (mut left_column, mut right_column): (Vec<_>, Vec<_>) = input
+        .lines()
+        .map(|line| {
+            line.split_whitespace()
+                .map(str::parse::<i32>)
+                .collect_tuple()
+                .ok_or(anyhow!("row did not contain exactly two items"))
+                .and_then(|(left, right)| Ok((left?, right?)))
+        })
+        .try_collect::<_, Vec<(_, _)>, _>()?
+        .into_iter()
+        .unzip();
 
-    input.lines().try_for_each(|line| {
-        let mut numbers = line.split_whitespace().map(str::parse);
-        left_column.push(numbers.next().unwrap()?);
-        right_column.push(numbers.next().unwrap()?);
-        Ok::<(), Box<dyn std::error::Error>>(())
-    })?;
-
-    // Sort both columns
     left_column.sort_unstable();
     right_column.sort_unstable();
 
