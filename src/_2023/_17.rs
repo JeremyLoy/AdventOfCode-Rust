@@ -86,7 +86,7 @@ pub fn djikstra(
         for heading in valid_headings {
             let next_state = current.state + heading;
             if let Some(new_cost) = city.grid.get(&next_state.position) {
-                if seen.get(&next_state).is_none() && is_valid_next_move(current.state, heading) {
+                if !seen.contains(&next_state) && is_valid_next_move(current.state, heading) {
                     seen.insert(next_state);
                     frontier.push(Work {
                         state: next_state,

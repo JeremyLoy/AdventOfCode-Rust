@@ -93,7 +93,7 @@ impl FromStr for Hailstone {
 /// # Returns
 ///
 /// * `Result<Vec<Hailstone>, &'static str>` - A result containing a vector of `Hailstone`
-/// structs if parsing is successful, or an error message if parsing fails.
+///   structs if parsing is successful, or an error message if parsing fails.
 ///
 /// # Errors
 ///
