@@ -36,12 +36,21 @@ use itertools::Itertools;
 pub fn parse(input: &str) -> Result<(Vec<i32>, Vec<i32>)> {
     input
         .lines()
-        .map(|line| {
+        .enumerate()
+        .map(|(line_number, line)| {
             line.split_whitespace()
                 .map(str::parse::<i32>)
                 .collect_tuple()
-                .ok_or(anyhow!("row did not contain exactly two items"))
-                .and_then(|(left, right)| Ok((left?, right?)))
+                .ok_or_else(|| anyhow!("row {line_number} did not contain exactly two items"))
+                .and_then(|(left_result, right_result)| {
+                    let left = left_result.map_err(|e| {
+                        anyhow!("failed to parse left item for line {line_number}: {}", e)
+                    })?;
+                    let right = right_result.map_err(|e| {
+                        anyhow!("failed to parse right item for line {line_number}: {}", e)
+                    })?;
+                    Ok((left, right))
+                })
         })
         .process_results(|results| results.unzip())
         .map(|(mut left, mut right): (Vec<_>, Vec<_>)| {
