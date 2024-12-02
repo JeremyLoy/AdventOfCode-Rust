@@ -97,8 +97,18 @@ fn scaffold_files() {
         fs::write(
             &file_name,
             format!(
-                r##"pub fn parse(input: &str) -> i32 {{
-    input.parse().unwrap_or(0)
+                r##"use anyhow::{{anyhow, Result}};
+use itertools::Itertools;
+
+#[allow(clippy::missing_errors_doc)]
+pub fn parse(input: &str) -> Result<i32> {{
+    input
+        .lines()
+        .map(|l| {{
+            l.parse::<i32>()
+                .map_err(|e| anyhow!("failed to parse input: {{}}", e))
+        }})
+        .process_results(|res| res.sum())
 }}
 
 #[cfg(test)]
@@ -111,28 +121,28 @@ mod tests {{
 
     #[test]
     fn test_1_sample() {{
-        let input = parse(SAMPLE);
+        let input = parse(SAMPLE).unwrap();
 
         assert_eq!(input, 1 + 1);
     }}
 
     #[test]
     fn test_1() {{
-        let input = parse(INPUT);
+        let input = parse(INPUT).unwrap();
 
         assert_eq!(input, 1 + 1);
     }}
 
     #[test]
     fn test_2_sample() {{
-        let input = parse(SAMPLE);
+        let input = parse(SAMPLE).unwrap();
 
         assert_eq!(input, 1 + 1);
     }}
 
     #[test]
     fn test_2() {{
-        let input = parse(INPUT);
+        let input = parse(INPUT).unwrap();
 
         assert_eq!(input, 1 + 1);
     }}
