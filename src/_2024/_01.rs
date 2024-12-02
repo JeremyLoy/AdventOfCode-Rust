@@ -34,7 +34,7 @@ use itertools::Itertools;
 /// assert_eq!(result, (vec![1, 3, 5], vec![2, 4, 6]));
 /// ```
 pub fn parse(input: &str) -> Result<(Vec<i32>, Vec<i32>)> {
-    let (mut left_column, mut right_column): (Vec<_>, Vec<_>) = input
+    input
         .lines()
         .map(|line| {
             line.split_whitespace()
@@ -43,14 +43,12 @@ pub fn parse(input: &str) -> Result<(Vec<i32>, Vec<i32>)> {
                 .ok_or(anyhow!("row did not contain exactly two items"))
                 .and_then(|(left, right)| Ok((left?, right?)))
         })
-        .try_collect::<_, Vec<(_, _)>, _>()?
-        .into_iter()
-        .unzip();
-
-    left_column.sort_unstable();
-    right_column.sort_unstable();
-
-    Ok((left_column, right_column))
+        .process_results(|results| results.unzip())
+        .map(|(mut left, mut right): (Vec<_>, Vec<_>)| {
+            left.sort_unstable();
+            right.sort_unstable();
+            (left, right)
+        })
 }
 
 /// Computes the sum of absolute differences between corresponding elements of two vectors.
