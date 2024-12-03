@@ -5,6 +5,19 @@ use itertools::Itertools;
 pub struct Report(Vec<i32>);
 
 impl Report {
+    /// Determines if any permutation of the sequence of numbers in the `Report` struct is "safe".
+    /// A permutation in this context
+    ///   is defined as the sequence obtained by removing a single item from the original sequence.
+    ///
+    /// A sequence is considered "safe" if it either follows a pattern where all differences
+    /// between consecutive numbers are within 1 to 3 (inclusive),
+    /// maintaining a consistent order (increasing or decreasing), or if any permutation
+    /// of the sequence can satisfy the same conditions.
+    ///
+    /// # Returns
+    ///
+    /// - `true` if the sequence itself or any permutation (with one item removed) adheres to the "safe" criteria.
+    /// - `false` otherwise.
     pub fn is_safe_permute(&self) -> bool {
         self.is_safe()
             || self.0.iter().enumerate().any(|(index, _)| {
@@ -14,6 +27,17 @@ impl Report {
                 Self::iter_is_safe(iter)
             })
     }
+
+    /// Checks if the sequence of numbers in the `Report` struct is "safe".
+    ///
+    /// A sequence is considered "safe" if it follows a pattern where all differences
+    ///   between consecutive numbers are within 1 to 3 (inclusive),
+    ///   maintain a consistent order (increasing or decreasing).
+    ///
+    /// # Returns
+    ///
+    /// - `true` if the sequence adheres to the "safe" criteria.
+    /// - `false` otherwise.
     pub fn is_safe(&self) -> bool {
         Self::iter_is_safe(self.0.iter())
     }
@@ -21,16 +45,11 @@ impl Report {
     where
         I: Iterator<Item = &'a i32>,
     {
-        let mut first = true;
-        let mut cmp: fn(&i32, &i32) -> bool = i32::lt;
+        let mut cmp = None;
         iter.tuple_windows().all(|(left, right)| {
-            if first {
-                first = false;
-                if right < left {
-                    cmp = i32::gt;
-                }
-            }
-            (1..=3).contains(&(left - right).abs()) && cmp(left, right)
+            cmp.get_or_insert_with(|| if right < left { i32::gt } else { i32::lt });
+
+            (1..=3).contains(&(left - right).abs()) && cmp.unwrap()(left, right)
         })
     }
 }
