@@ -1,6 +1,7 @@
 use anyhow::Result;
 use regex::Regex;
 
+#[derive(Debug)]
 pub enum Instruction {
     Do,
     Dont,
@@ -9,12 +10,18 @@ pub enum Instruction {
 
 #[allow(clippy::missing_errors_doc)]
 pub fn parse(input: &str) -> Result<Vec<Instruction>> {
-    let re = Regex::new(r"(?P<mul>mul\((\d{1,3}),(\d{1,3})\))|(?P<do>do\(\))|(?P<dont>don't\(\))")?;
+    let re = Regex::new(
+        r"(?x)
+              (?P<mul>mul\((\d{1,3}),(\d{1,3})\))|
+              (?P<do>do\(\))|
+              (?P<dont>don't\(\))
+              ",
+    )?;
     re.captures_iter(input)
         .map(|cap| {
             if cap.name("mul").is_some() {
-                let left = cap[2].parse::<i32>()?;
-                let right = cap[3].parse::<i32>()?;
+                let left = cap[2].parse()?;
+                let right = cap[3].parse()?;
                 Ok(Instruction::Mul(left, right))
             } else if cap.name("do").is_some() {
                 Ok(Instruction::Do)
