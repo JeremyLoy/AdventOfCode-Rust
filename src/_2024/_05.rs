@@ -61,7 +61,6 @@ pub fn parse(input: &str) -> Result<(Vec<OrderingRule>, Vec<Page>)> {
         .map_ok(Page)
         .collect::<Result<Vec<Page>>>()?;
 
-    println!("{ordering_rules:?}, {pages:?}");
     Ok((ordering_rules, pages))
 }
 
