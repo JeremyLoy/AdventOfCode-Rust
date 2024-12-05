@@ -1,8 +1,10 @@
 use anyhow::{anyhow, Result};
 use itertools::Itertools;
+use std::cmp::Ordering;
+use std::collections::HashSet;
 use std::num::ParseIntError;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq, Hash, Ord, PartialOrd, Clone, Copy)]
 pub struct OrderingRule((u8, u8));
 
 #[derive(Debug)]
@@ -19,24 +21,28 @@ impl Page {
         );
         u32::from(self.0[length / 2])
     }
-    pub fn applies(&self, ordering_rule: &OrderingRule) -> bool {
-        self.ordering_rule_idx(ordering_rule).is_none()
+
+    pub fn is_sorted_by(&self, ordering_rules: &HashSet<OrderingRule>) -> bool {
+        self.0
+            .iter()
+            .is_sorted_by(|x, y| ordering_rules.contains(&OrderingRule((**x, **y))))
     }
-    pub fn ordering_rule_idx(&self, ordering_rule: &OrderingRule) -> Option<(usize, usize)> {
-        let (left, right) = ordering_rule.0;
 
-        let index_of_left = self.0.iter().position(|&value| value == left);
-        let index_of_right = self.0.iter().position(|&value| value == right);
-
-        match (index_of_left, index_of_right) {
-            (Some(l), Some(r)) if l > r => Some((l, r)),
-            _ => None,
-        }
+    pub fn sort_by(&mut self, ordering_rules: &HashSet<OrderingRule>) {
+        self.0.sort_by(|x, y| {
+            if ordering_rules.contains(&OrderingRule((*x, *y))) {
+                Ordering::Less
+            } else if ordering_rules.contains(&OrderingRule((*y, *x))) {
+                Ordering::Greater
+            } else {
+                Ordering::Equal
+            }
+        });
     }
 }
 
 #[allow(clippy::missing_errors_doc)]
-pub fn parse(input: &str) -> Result<(Vec<OrderingRule>, Vec<Page>)> {
+pub fn parse(input: &str) -> Result<(HashSet<OrderingRule>, Vec<Page>)> {
     let (ordering_rules, pages) = input
         .split_once("\n\n")
         .ok_or(anyhow!("could not split on ordering rules and pages"))?;
@@ -49,7 +55,7 @@ pub fn parse(input: &str) -> Result<(Vec<OrderingRule>, Vec<Page>)> {
                 .map(|(a, b)| Ok((a.parse()?, b.parse()?)))?
         })
         .map_ok(OrderingRule)
-        .collect::<Result<Vec<OrderingRule>>>()?;
+        .collect::<Result<HashSet<OrderingRule>>>()?;
 
     let pages = pages
         .lines()
@@ -64,53 +70,22 @@ pub fn parse(input: &str) -> Result<(Vec<OrderingRule>, Vec<Page>)> {
     Ok((ordering_rules, pages))
 }
 
-pub fn p1(ordering_rules: &[OrderingRule], pages: &[Page]) -> u32 {
+pub fn p1(ordering_rules: &HashSet<OrderingRule>, pages: &[Page]) -> u32 {
     pages
         .iter()
-        .filter(|page| {
-            ordering_rules
-                .iter()
-                .all(|ordering_rule| page.applies(ordering_rule))
-        })
+        .filter(|page| page.is_sorted_by(ordering_rules))
         .map(Page::middle)
         .sum()
 }
 
-pub fn p2(ordering_rules: &[OrderingRule], pages: &[Page]) -> u32 {
+#[allow(clippy::manual_inspect)]
+pub fn p2(ordering_rules: &HashSet<OrderingRule>, pages: &mut [Page]) -> u32 {
     pages
-        .iter()
-        .filter(|page| {
-            !ordering_rules
-                .iter()
-                .all(|ordering_rule| page.applies(ordering_rule))
-        })
+        .iter_mut()
+        .filter(|page| !page.is_sorted_by(ordering_rules))
         .map(|page| {
-            let mut new_page = Page(page.0.clone());
-            while !ordering_rules
-                .iter()
-                .all(|ordering_rule| new_page.applies(ordering_rule))
-            {
-                if let Some(Some((from_index, to_index)), ..) = ordering_rules
-                    .iter()
-                    .map(|or| new_page.ordering_rule_idx(or))
-                    .find(Option::is_some)
-                {
-                    // Remove the element from the current position
-                    let element = new_page.0.remove(from_index);
-
-                    // Adjust the target index if removing has shifted it
-                    let adjusted_index = if from_index < to_index {
-                        to_index - 1
-                    } else {
-                        to_index
-                    };
-
-                    // Insert the element at the new position
-                    new_page.0.insert(adjusted_index, element);
-                }
-            }
-
-            new_page
+            page.sort_by(ordering_rules);
+            page
         })
         .map(|p| p.middle())
         .sum()
@@ -169,16 +144,16 @@ mod tests {
 
     #[test]
     fn test_2_sample() {
-        let (ordering_rules, pages) = parse(SAMPLE).unwrap();
-        let sum = p2(&ordering_rules, &pages);
+        let (ordering_rules, mut pages) = parse(SAMPLE).unwrap();
+        let sum = p2(&ordering_rules, &mut pages);
 
         assert_eq!(sum, 123);
     }
 
     #[test]
     fn test_2() {
-        let (ordering_rules, pages) = parse(INPUT).unwrap();
-        let sum = p2(&ordering_rules, &pages);
+        let (ordering_rules, mut pages) = parse(INPUT).unwrap();
+        let sum = p2(&ordering_rules, &mut pages);
 
         assert_eq!(sum, 4_884);
     }
