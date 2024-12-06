@@ -2,8 +2,27 @@
 name = "advent_of_code_rust"
 version = "0.1.0"
 edition = "2021"
-
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+#-- -Wclippy::style -Dwarnings -Dclippy::pedantic -Aclippy::cast-possible-truncation -Aclippy::must-use-candidate -Aclippy::implicit-hasher -Aclippy::missing-panics-doc -Aclippy::cast-sign-loss -Aclippy::cast-possible-wrap
+[lints.rust]
+warnings = "deny"
+nonstandard-style = "deny"
+unused = "deny"
+refining-impl-trait = "deny"
+let-underscore = "deny"
+keyword-idents = "deny"
+future-incompatible = "deny"
+
+[lints.clippy]
+style = { level = "deny", priority = -1 }
+pedantic = { level = "deny", priority = -1 }
+cast-possible-truncation = "allow"
+cast-possible-wrap = "allow"
+cast-sign-loss = "allow"
+must-use-candidate = "allow"
+missing-panics-doc = "allow"
+implicit-hasher = "allow"
 
 [dependencies]
 clap = { version = "4.4.8", features = ["derive"] }

@@ -79,7 +79,7 @@ pub fn cycles(grid: &mut Grid) -> usize {
     // walk it once to mutate the original grid, setting walked points
     travel_and_count(grid).unwrap();
     let counter = Arc::new(AtomicUsize::new(0));
-    let sum = (0..=grid.max_y)
+    (0..=grid.max_y)
         .into_par_iter()
         .map(|y| {
             (0..=grid.max_x)
@@ -118,9 +118,7 @@ pub fn cycles(grid: &mut Grid) -> usize {
                 })
                 .sum::<usize>()
         })
-        .sum();
-    println!("{} cycles", counter.load(Relaxed));
-    sum
+        .sum()
 }
 
 pub fn travel_and_count(grid: &mut Grid) -> Option<usize> {
@@ -225,7 +223,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore = "takes too long"]
     fn test_2() {
         let mut grid = parse(INPUT).unwrap();
         let count = cycles(&mut grid);
