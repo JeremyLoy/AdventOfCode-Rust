@@ -1,6 +1,5 @@
 use anyhow::{anyhow, Result};
 use itertools::{repeat_n, Itertools};
-use std::ops::{Add, Mul};
 
 #[allow(clippy::missing_errors_doc)]
 pub fn parse(input: &str) -> Result<Vec<(u64, Vec<u64>)>> {
@@ -25,17 +24,17 @@ pub fn parse(input: &str) -> Result<Vec<(u64, Vec<u64>)>> {
         .collect()
 }
 
-pub fn p1(input: &[(u64, Vec<u64>)]) -> u64 {
+pub fn solve(input: &[(u64, Vec<u64>)], ops: &[fn(u64, u64) -> u64]) -> u64 {
     input
         .iter()
         .filter(|(left, right)| {
-            repeat_n([u64::add, u64::mul], right.len() - 1)
+            repeat_n(ops, right.len() - 1)
                 .multi_cartesian_product()
                 .any(|p| {
                     let result = p
                         .iter()
                         .zip(right[1..].iter())
-                        .fold(right[0], |res, (op, next)| op(res, next));
+                        .fold(right[0], |res, (op, next)| op(res, *next));
                     result == *left
                 })
         })
@@ -43,37 +42,19 @@ pub fn p1(input: &[(u64, Vec<u64>)]) -> u64 {
         .sum()
 }
 
-pub fn p2(input: &[(u64, Vec<u64>)]) -> u64 {
-    input
-        .iter()
-        .filter(|(left, right)| {
-            repeat_n(
-                [u64::add, u64::mul, |a: u64, b: u64| {
-                    a.to_string()
-                        .chars()
-                        .chain(b.to_string().chars())
-                        .collect::<String>()
-                        .parse()
-                        .unwrap()
-                }],
-                right.len() - 1,
-            )
-            .multi_cartesian_product()
-            .any(|p| {
-                let result = p
-                    .iter()
-                    .zip(right[1..].iter())
-                    .fold(right[0], |res, (op, next)| op(res, *next));
-                result == *left
-            })
-        })
-        .map(|(left, _)| left)
-        .sum()
+pub fn concat(a: u64, b: u64) -> u64 {
+    a.to_string()
+        .chars()
+        .chain(b.to_string().chars())
+        .collect::<String>()
+        .parse()
+        .unwrap()
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::ops::{Add, Mul};
 
     const SAMPLE: &str = "\
 190: 10 19
@@ -91,7 +72,7 @@ mod tests {
     #[test]
     fn test_1_sample() {
         let input = parse(SAMPLE).unwrap();
-        let sum = p1(&input);
+        let sum = solve(&input, &[Add::add, Mul::mul]);
 
         assert_eq!(sum, 3_749);
     }
@@ -99,7 +80,7 @@ mod tests {
     #[test]
     fn test_1() {
         let input = parse(INPUT).unwrap();
-        let sum = p1(&input);
+        let sum = solve(&input, &[Add::add, Mul::mul]);
 
         assert_eq!(sum, 1_298_300_076_754);
     }
@@ -107,7 +88,7 @@ mod tests {
     #[test]
     fn test_2_sample() {
         let input = parse(SAMPLE).unwrap();
-        let sum = p2(&input);
+        let sum = solve(&input, &[Add::add, Mul::mul, concat]);
 
         assert_eq!(sum, 11_387);
     }
@@ -115,7 +96,7 @@ mod tests {
     #[test]
     fn test_2() {
         let input = parse(INPUT).unwrap();
-        let sum = p2(&input);
+        let sum = solve(&input, &[Add::add, Mul::mul, concat]);
 
         assert_eq!(sum, 248_427_118_972_289);
     }
