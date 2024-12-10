@@ -90,17 +90,22 @@ pub fn calculate_path_scores(grid: &HashMap<Point, u8>, scoring_method: ScoringM
         }
     }
 
+    let mut p1 = HashSet::new();
+    let mut p2 = 0;
+    let mut path = Vec::new();
     grid.iter()
         .filter(|(_, &value)| value == 0)
         .map(|(&point, &value)| {
-            let mut p1: HashSet<_> = HashSet::new();
-            let mut p2 = 0;
-            traverse_trail(grid, point, value, &mut vec![point], &mut p1, &mut p2);
-            (p1, p2)
-        })
-        .map(|(seen, score)| match scoring_method {
-            ScoringMethod::Unique9s => seen.len(),
-            ScoringMethod::UniquePaths => score,
+            p1.clear();
+            p2 = 0;
+            path.clear();
+            path.push(point);
+            traverse_trail(grid, point, value, &mut path, &mut p1, &mut p2);
+
+            match scoring_method {
+                ScoringMethod::Unique9s => p1.len(),
+                ScoringMethod::UniquePaths => p2,
+            }
         })
         .sum()
 }
