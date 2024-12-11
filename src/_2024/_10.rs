@@ -65,42 +65,34 @@ pub enum ScoringMethod {
 pub fn calculate_path_scores(grid: &HashMap<Point, u8>, scoring_method: ScoringMethod) -> usize {
     fn traverse_trail(
         grid: &HashMap<Point, u8>,
-        point: Point,
-        current_value: u8,
-        path: &mut Vec<Point>,
-        p1: &mut HashSet<Point>,
-        p2: &mut usize,
-    ) {
-        if current_value == 9 {
-            // p1 is the unique 9s seen per trailhead
-            // p2 is the total number of paths to a 9 from a trailhead
-            p1.insert(point);
-            *p2 += 1;
-            return;
-        }
-
-        for neighbor in point.neighbors() {
-            if let Some(&neighbor_value) = grid.get(&neighbor) {
-                if neighbor_value == current_value + 1 {
-                    path.push(neighbor);
-                    traverse_trail(grid, neighbor, neighbor_value, path, p1, p2);
-                    path.pop();
+        trail_head: Point,
+        start_elevation: u8,
+    ) -> (HashSet<Point>, usize) {
+        let mut p1 = HashSet::new();
+        let mut p2 = 0;
+        let mut stack = vec![(trail_head, start_elevation)];
+        while let Some((point, elevation)) = stack.pop() {
+            for neighbor in point.neighbors() {
+                if let Some(&neighbor_value) = grid.get(&neighbor) {
+                    if neighbor_value == elevation + 1 {
+                        stack.push((neighbor, neighbor_value));
+                    }
                 }
             }
+            if elevation == 9 {
+                // p1 is the unique 9s seen per trailhead
+                // p2 is the total number of paths to a 9 from a trailhead
+                p1.insert(point);
+                p2 += 1;
+            }
         }
+        (p1, p2)
     }
 
-    let mut p1 = HashSet::new();
-    let mut p2 = 0;
-    let mut path = Vec::new();
     grid.iter()
         .filter(|(_, &value)| value == 0)
-        .map(|(&point, &value)| {
-            p1.clear();
-            p2 = 0;
-            path.clear();
-            path.push(point);
-            traverse_trail(grid, point, value, &mut path, &mut p1, &mut p2);
+        .map(|(&trail_head, &value)| {
+            let (p1, p2) = traverse_trail(grid, trail_head, value);
 
             match scoring_method {
                 ScoringMethod::Unique9s => p1.len(),
