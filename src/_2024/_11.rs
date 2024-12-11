@@ -42,8 +42,6 @@ pub fn blink(stones: &[u64], times: usize) -> usize {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use rayon::iter::IntoParallelIterator;
-    use rayon::iter::ParallelIterator;
 
     const SAMPLE: &str = "125 17";
     const INPUT: &str = include_str!("../../input/2024/11.txt");
@@ -75,11 +73,8 @@ mod tests {
     #[test]
     fn test_2() {
         let stones = parse(INPUT).unwrap();
-        let sum: usize = stones
-            .into_par_iter()
-            .map(|stone| blink(&[stone], 75))
-            .sum();
+        let stones = blink(&stones, 75);
 
-        assert_eq!(sum, 238_317_474_993_392);
+        assert_eq!(stones, 238_317_474_993_392);
     }
 }
