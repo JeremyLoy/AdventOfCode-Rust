@@ -157,25 +157,17 @@ pub fn find_vegetable_plots(grid: &HashMap<Point, char>) -> Vec<(Vec<Point>, cha
     plots
 }
 
-pub fn perimeter_nodes(grid: &HashMap<Point, char>, group: &[Point]) -> Vec<Point> {
+pub fn perimeter(grid: &HashMap<Point, char>, group: &[Point], vegetable: char) -> usize {
     group
         .iter()
-        .copied()
-        .flat_map(|point| {
-            point
+        .map(|point| {
+            4 - point
                 .neighbors()
                 .iter()
-                .copied()
-                .map(|neighbor| (neighbor, grid.get(&point).unwrap()))
-                .collect::<Vec<_>>()
+                .filter(|p| grid.get(p).is_some_and(|v| *v == vegetable))
+                .count()
         })
-        .filter(|(neighbor, c)| match grid.get(neighbor) {
-            Some(v) if v != *c => true,
-            None => true,
-            Some(_) => false,
-        })
-        .map(|(neighbor, _)| neighbor)
-        .collect()
+        .sum()
 }
 
 pub fn count_corners(grid: &HashMap<Point, char>, plot: &[Point], vegetable: char) -> usize {
@@ -204,9 +196,9 @@ pub fn count_corners(grid: &HashMap<Point, char>, plot: &[Point], vegetable: cha
 pub fn sum_perimeter_area(grid: &HashMap<Point, char>, groupings: &[(Vec<Point>, char)]) -> usize {
     groupings
         .iter()
-        .map(|(group, _)| {
+        .map(|(group, vegetable)| {
             let area = group.len();
-            let perimeter = perimeter_nodes(grid, group).len();
+            let perimeter = perimeter(grid, group, *vegetable);
             perimeter * area
         })
         .sum()
