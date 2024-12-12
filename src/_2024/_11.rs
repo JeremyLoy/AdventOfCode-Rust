@@ -9,6 +9,33 @@ pub fn parse(input: &str) -> Result<Vec<u64>> {
         .collect()
 }
 
+trait Stone
+where
+    Self: Sized,
+{
+    fn is_even(&self) -> bool;
+    fn num_digits(&self) -> Self;
+    fn split(&self) -> (Self, Self);
+}
+
+impl Stone for u64 {
+    fn is_even(&self) -> bool {
+        self % 2 == 0
+    }
+
+    // log10(1234) + 1 = 3 + 1 = 4
+    fn num_digits(&self) -> u64 {
+        u64::from(self.ilog10() + 1)
+    }
+
+    fn split(&self) -> (u64, u64) {
+        // pow = 2 = loq10(1234) / 2 = 3 + 1 / 2
+        // (left, right) = (1234/100) (1234 % 100)
+        let pow = 10u64.pow((self.num_digits() / 2) as u32);
+        (self / pow, self % pow)
+    }
+}
+
 pub fn blink(stones: &[u64], times: usize) -> usize {
     fn blink_once(stone: u64, blinks: usize, cache: &mut HashMap<(u64, usize), usize>) -> usize {
         if blinks == 0 {
@@ -17,12 +44,10 @@ pub fn blink(stones: &[u64], times: usize) -> usize {
             *derived_stones
         } else {
             let blinks_remaining = blinks - 1;
-            let stone_string = stone.to_string();
             let derived_stones = if stone == 0 {
                 blink_once(1, blinks_remaining, cache)
-            } else if stone_string.chars().count() % 2 == 0 {
-                let (left, right) = stone_string.split_at(stone_string.len() / 2);
-                let (left, right) = (left.parse().unwrap(), right.parse().unwrap());
+            } else if stone.num_digits().is_even() {
+                let (left, right) = stone.split();
                 blink_once(left, blinks_remaining, cache)
                     + blink_once(right, blinks_remaining, cache)
             } else {
