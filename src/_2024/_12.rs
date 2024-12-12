@@ -177,9 +177,15 @@ pub fn count_corners(grid: &HashMap<Point, char>, plot: &[Point], vegetable: cha
         for corner in point.corners() {
             let (left, corner, right) = corner.iter().map(|p| grid.get(p)).collect_tuple().unwrap();
 
+            // ...
+            // VV.
+            // VV.   NE case, checking the middle
             let is_exterior = (left.is_some_and(|c| *c != vegetable) || left.is_none())
                 & (right.is_some_and(|v| *v != vegetable) || right.is_none());
 
+            // VV.
+            // VVV
+            // VVV NE case, checking the middle
             let is_interior = left.is_some_and(|c| *c == vegetable)
                 && left == right
                 && (corner.is_none() || corner.is_some_and(|c| *c != vegetable));
