@@ -1,5 +1,7 @@
 use anyhow::{anyhow, Result};
+use gif::{Encoder, Frame, Repeat};
 use std::collections::HashSet;
+use std::fs::File;
 
 #[allow(clippy::missing_errors_doc)]
 pub fn parse(input: &str) -> Result<Vec<(i32, i32, i32, i32)>> {
@@ -134,6 +136,67 @@ pub fn p2(mut roombas: Vec<(i32, i32, i32, i32)>) -> usize {
         break;
     }
     seconds
+}
+
+// this function created the gif neighboring this file
+// I then upscaled it with imagemagick instead of trying to do so in the code
+// convert _14.gif -filter point -resize 800% _14.gif
+#[allow(clippy::field_reassign_with_default)]
+pub fn write_file(mut roombas: Vec<(i32, i32, i32, i32)>) {
+    let width: i32 = 101;
+    let height: i32 = 103;
+    let total_frames = 120;
+
+    // start on the answer
+    let start = 7_502;
+    for roomba in &mut roombas {
+        advance(roomba, start, width, height);
+    }
+
+    let palette = &[
+        0x00, 0x00, 0x00, // Black (RGB)
+        0xFF, 0xFF, 0xFF, // White (RGB)
+    ];
+
+    let mut roomba_set = roombas
+        .iter()
+        .map(|r| (r.0, r.1))
+        .collect::<HashSet<(i32, i32)>>();
+
+    let mut image = File::create("_14.gif").unwrap();
+    let mut encoder = Encoder::new(&mut image, width as u16, height as u16, palette).unwrap();
+    encoder.set_repeat(Repeat::Infinite).unwrap();
+
+    for f in start..start + total_frames / 2 {
+        let mut frame = Frame::default();
+        frame.width = width as u16;
+        frame.height = height as u16;
+        frame.delay = 2;
+
+        let mut pixels = Vec::new();
+        for y in 0..height {
+            for x in 0..width {
+                let found = roomba_set.contains(&(x, y));
+                pixels.push(u8::from(found));
+            }
+        }
+
+        frame.buffer = pixels.into();
+        encoder.write_frame(&frame).unwrap();
+
+        // linger on the answer for half of the .gif
+        if f == start {
+            for _ in 0..total_frames / 2 {
+                encoder.write_frame(&frame).unwrap();
+            }
+        }
+
+        roomba_set.clear();
+        for roomba in &mut roombas {
+            advance(roomba, 1, width, height);
+            roomba_set.insert((roomba.0, roomba.1));
+        }
+    }
 }
 #[cfg(test)]
 mod tests {

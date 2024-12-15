@@ -32,6 +32,7 @@ reqwest = { version = "0.12.9", features = ["blocking"] }
 rand = "0.8.5"
 anyhow = "1.0.93"
 regex = "1.11.1"
+gif = "0.13.1"
 
 [dev-dependencies]
 pretty_assertions = "1.4.1"
