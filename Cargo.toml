@@ -21,6 +21,7 @@ cast-possible-truncation = "allow"
 cast-possible-wrap = "allow"
 cast-sign-loss = "allow"
 must-use-candidate = "allow"
+missing-errors-doc = "allow"
 missing-panics-doc = "allow"
 implicit-hasher = "allow"
 

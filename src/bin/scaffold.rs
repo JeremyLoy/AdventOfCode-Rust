@@ -100,7 +100,6 @@ fn scaffold_files() {
                 r##"use anyhow::{{anyhow, Result}};
 use itertools::Itertools;
 
-#[allow(clippy::missing_errors_doc)]
 pub fn parse(input: &str) -> Result<i32> {{
     input
         .lines()
