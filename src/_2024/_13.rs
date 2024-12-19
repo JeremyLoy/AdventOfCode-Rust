@@ -20,7 +20,6 @@ pub struct Machine {
     pub prize: Prize,
 }
 
-#[allow(clippy::missing_errors_doc)]
 pub fn parse(input: &str) -> Result<Vec<Machine>> {
     let re = regex::Regex::new(r".*X[=+-](\d+).*Y[=+-](\d+)")?;
     let machines = input

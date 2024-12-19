@@ -1,7 +1,6 @@
 use anyhow::{anyhow, Result};
 use itertools::{repeat_n, Itertools};
 
-#[allow(clippy::missing_errors_doc)]
 pub fn parse(input: &str) -> Result<Vec<(u64, Vec<u64>)>> {
     input
         .lines()

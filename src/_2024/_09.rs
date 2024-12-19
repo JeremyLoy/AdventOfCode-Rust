@@ -12,7 +12,6 @@ pub enum Block {
     Empty,
 }
 
-#[allow(clippy::missing_errors_doc)]
 pub fn parse(input: &str) -> Result<Disk> {
     let blocks_grouped: Vec<Vec<Block>> = input
         .chars()

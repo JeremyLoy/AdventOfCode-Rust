@@ -95,7 +95,6 @@ impl Point {
     }
 }
 
-#[allow(clippy::missing_errors_doc)]
 pub fn parse(input: &str) -> HashMap<Point, char> {
     input
         .lines()

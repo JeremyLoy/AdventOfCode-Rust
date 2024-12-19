@@ -54,7 +54,6 @@ impl Report {
     }
 }
 
-#[allow(clippy::missing_errors_doc)]
 pub fn parse(input: &str) -> Result<Vec<Report>> {
     input
         .lines()

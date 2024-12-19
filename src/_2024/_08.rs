@@ -14,7 +14,6 @@ impl Grid {
     }
 }
 
-#[allow(clippy::missing_errors_doc)]
 pub fn parse(input: &str) -> Result<Grid> {
     let mut height = 0;
     let mut width = 0;

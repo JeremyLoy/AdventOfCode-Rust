@@ -30,7 +30,6 @@ impl Point {
     }
 }
 
-#[allow(clippy::missing_errors_doc)]
 pub fn parse(input: &str) -> Result<HashMap<Point, u8>> {
     let mut grid = HashMap::new();
     for (y, line) in input.lines().enumerate() {

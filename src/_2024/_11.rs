@@ -1,7 +1,6 @@
 use anyhow::{anyhow, Result};
 use std::collections::HashMap;
 
-#[allow(clippy::missing_errors_doc)]
 pub fn parse(input: &str) -> Result<Vec<u64>> {
     input
         .split_whitespace()

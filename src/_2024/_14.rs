@@ -3,7 +3,6 @@ use gif::{Encoder, Frame, Repeat};
 use std::collections::HashSet;
 use std::fs::File;
 
-#[allow(clippy::missing_errors_doc)]
 pub fn parse(input: &str) -> Result<Vec<(i32, i32, i32, i32)>> {
     use regex::Regex;
 

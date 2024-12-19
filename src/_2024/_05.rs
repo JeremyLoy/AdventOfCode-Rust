@@ -41,7 +41,6 @@ impl Page {
     }
 }
 
-#[allow(clippy::missing_errors_doc)]
 pub fn parse(input: &str) -> Result<(HashSet<OrderingRule>, Vec<Page>)> {
     let (ordering_rules, pages) = input
         .split_once("\n\n")

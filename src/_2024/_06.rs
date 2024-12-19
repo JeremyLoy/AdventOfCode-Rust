@@ -43,7 +43,6 @@ pub enum Direction {
     Right,
 }
 
-#[allow(clippy::missing_errors_doc)]
 pub fn parse(input: &str) -> Result<Grid> {
     let mut map = HashMap::new();
     let mut start = (Point { x: 0, y: 0 }, Direction::Up);

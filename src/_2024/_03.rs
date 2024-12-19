@@ -8,7 +8,6 @@ pub enum Instruction {
     Mul(i32, i32),
 }
 
-#[allow(clippy::missing_errors_doc)]
 pub fn parse(input: &str) -> Result<Vec<Instruction>> {
     let re = Regex::new(
         r"(?x)
