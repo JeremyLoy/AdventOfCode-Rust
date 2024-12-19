@@ -11,7 +11,7 @@ pub fn parse(input: &str) -> (Vec<&str>, Vec<&str>) {
 
 pub fn match_count<'a>(
     design: &'a str,
-    all_towels: &[&'a str],
+    all_towels: &[&str],
     memo: &mut HashMap<&'a str, usize>,
 ) -> usize {
     if let Some(&count) = memo.get(design) {
