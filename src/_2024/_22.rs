@@ -1,4 +1,3 @@
-use anyhow::{anyhow, Result};
 use itertools::Itertools;
 use std::collections::HashMap;
 use std::iter::once;
@@ -29,7 +28,6 @@ pub fn get_price_change_map(secret: i64) -> HashMap<(i64, i64, i64, i64), i64> {
 
     let price_changes: Vec<(i64, i64)> = once(start)
         .chain(prices)
-        .map(|p| p as i64)
         .tuple_windows()
         .map(|(a, b)| (b % 10, b % 10 - a % 10))
         .collect_vec();
@@ -41,14 +39,12 @@ pub fn get_price_change_map(secret: i64) -> HashMap<(i64, i64, i64, i64), i64> {
     lookup_map
 }
 
-pub fn part1(input: &str) -> Result<i64> {
+pub fn part1(input: &str) -> i64 {
     input
         .lines()
-        .map(|l| {
-            l.parse()
-                .map_err(|e| anyhow!("failed to parse input: {}", e))
-        })
-        .process_results(|res| res.map(|s| *get_all_prices(s).last().unwrap()).sum())
+        .map(|l| l.parse().unwrap())
+        .map(|s| *get_all_prices(s).last().unwrap())
+        .sum()
 }
 
 pub fn part2(input: &str) -> i64 {
@@ -88,14 +84,14 @@ mod tests {
 
     #[test]
     fn test_1_sample() {
-        let input = part1(SAMPLE).unwrap();
+        let input = part1(SAMPLE);
 
         assert_eq!(input, 37_327_623);
     }
 
     #[test]
     fn test_1() {
-        let input = part1(INPUT).unwrap();
+        let input = part1(INPUT);
 
         assert_eq!(input, 14_392_541_715);
     }
