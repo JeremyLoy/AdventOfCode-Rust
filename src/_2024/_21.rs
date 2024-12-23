@@ -3,6 +3,8 @@ use std::collections::HashMap;
 use std::iter::once;
 
 // a hardcoded list of all 141 possible permutations of input
+// see bin/generate_2024_21_static.rs for the solution
+//
 // 11^2 = 121 for the digit pad (
 // 5^2 = 25 for the arrow key pad
 // -5 for AA (which exists in both lists) and <>, ^v, ><, v^ that would never be a useful move
@@ -94,7 +96,7 @@ pub fn sum_complexity(input: &str, num_robots: usize) -> usize {
 
 #[cfg(test)]
 mod tests {
-    use crate::_2024::_21::*;
+    use super::*;
 
     const SAMPLE: &str = "\
 029A
