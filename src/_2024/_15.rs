@@ -479,7 +479,7 @@ v^^>>><<^^<>>^v^<v^vv<>v^<<>^<^v^v><^<<<><<^<v><v<>vv>>v><v^<vv<>v^<<^
 ####################
 
 ^";
-    const INPUT: &str = include_str!("input/2024/15.txt");
+    const INPUT: &str = include_str!("../../input/2024/15.txt");
 
     #[test]
     fn test_1_sample() {
