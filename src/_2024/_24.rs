@@ -65,12 +65,7 @@ impl Machine {
                 }
             }
 
-            return swap
-                .iter()
-                .map(|(a, b)| vec![a, b])
-                .flatten()
-                .sorted()
-                .join(",");
+            return swap.iter().flat_map(|(a, b)| vec![a, b]).sorted().join(",");
         }
         panic!("no solution found");
     }
@@ -82,9 +77,9 @@ impl Machine {
         self.wires_to_values.clear();
         for i in 0..bits {
             self.wires_to_values
-                .insert(format!("x{:02}", i), new_x & (1 << i) != 0);
+                .insert(format!("x{i:02}"), new_x & (1 << i) != 0);
             self.wires_to_values
-                .insert(format!("y{:02}", i), new_y & (1 << i) != 0);
+                .insert(format!("y{i:02}"), new_y & (1 << i) != 0);
         }
 
         // clear the temporary output overrides for p2
@@ -130,7 +125,7 @@ impl Machine {
             .iter()
             .sorted_by_key(|(wire, _)| wire)
             .rev()
-            .map(|(_, value)| if **value { 1 } else { 0 })
+            .map(|(_, value)| usize::from(**value))
             .fold(0, |acc, x| (acc << 1) | x)
     }
 }

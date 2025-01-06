@@ -43,11 +43,7 @@ pub fn parse(input: &str) -> (Vec<KeyOrLock>, Vec<KeyOrLock>) {
 pub fn possible_keys((keys, locks): &(Vec<KeyOrLock>, Vec<KeyOrLock>)) -> usize {
     keys.iter()
         .cartesian_product(locks)
-        .filter(|(key, lock)| {
-            key.into_iter()
-                .zip(lock.into_iter())
-                .all(|(k, l)| k + l <= 5)
-        })
+        .filter(|(key, lock)| key.iter().zip(lock.iter()).all(|(k, l)| k + l <= 5))
         .count()
 }
 

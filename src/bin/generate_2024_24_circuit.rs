@@ -11,12 +11,12 @@ fn main() -> io::Result<()> {
     let gates = parse(input).gates;
     let z = gates
         .iter()
-        .filter(|g| g.output.starts_with("z"))
+        .filter(|g| g.output.starts_with('z'))
         .map(|g| g.output.clone())
         .sorted()
         .join("->");
-    let x = z.replace("z", "x");
-    let y = z.replace("z", "y");
+    let x = z.replace('z', "x");
+    let y = z.replace('z', "y");
 
     let and = gates
         .iter()

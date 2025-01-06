@@ -41,13 +41,16 @@ pub fn solve(input: &[(u64, Vec<u64>)], ops: &[fn(u64, u64) -> u64]) -> u64 {
         .sum()
 }
 
+#[allow(clippy::cast_precision_loss)]
 pub fn concat(a: u64, b: u64) -> u64 {
-    a.to_string()
-        .chars()
-        .chain(b.to_string().chars())
-        .collect::<String>()
-        .parse()
-        .unwrap()
+    let num_digits = {
+        if b == 0 {
+            1
+        } else {
+            (b as f64).log10().floor() as u32 + 1u32
+        }
+    };
+    a * 10u64.pow(num_digits) + b
 }
 
 #[cfg(test)]
